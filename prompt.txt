@@ -1,0 +1,5 @@
+Following the style of presentation of @/Users/tsouros/Desktop/Projects/STL-Dev/Planck Project/TeX/Presentation/beamer.tex, please add a section where you describe exactly what the ST_COMPUTE_PS = True parameter does. Try to frame the problem always in terms of the full 5-channel object [d_q, n_q, d_u. n_u. d_I] that we are working with. 
+
+Try to follow the spirit of the rest of the document in the way that you explain things. 
+
+At the end, do a calculation where you estimate the memory needed to be saved in the node for the backpropagation when ST_COMPUTE_PS = False as well as True. 

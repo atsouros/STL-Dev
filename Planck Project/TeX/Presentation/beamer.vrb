@@ -1,28 +1,9 @@
-\frametitle{Summary of the comparison}
-\begin{columns}[T,totalwidth=\textwidth]
-\begin{column}{0.48\textwidth}
-\textbf{Without PS}
+\frametitle{Takeaways}
 \begin{itemize}
-  \item compute $\Phi_{\mathrm{ST}}$,
-  \item keep scattering intermediates for running side,
-  \item no $P(X)$ tensors,
-  \item no $N_b C^2 N_{\mathrm{bins}}HW$ object.
+  \item The optimized running maps are $u_Q,u_U$; the final maps are denoted $\tilde s_Q,\tilde s_U$.
+  \item Target channels contain observed Q/U, sampled Q/U nuisance, and fixed I857.
+  \item Running channels mix fields as $u_Q+n_Q$ and $u_U+n_U$.
+  \item Residual channels $d_Q-u_Q$ and $d_U-u_U$ expose what the running maps leave behind.
+  \item A minibatch is an extra leading dimension over selected nuisance realizations.
+  \item The cross matrix decides which channel relations STL is allowed to match.
 \end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{With PS}
-\begin{itemize}
-  \item compute $\Phi_{\mathrm{ST}}$ and $P$,
-  \item keep scattering intermediates,
-  \item keep binned FFT maps,
-  \item keep cross-spectrum object,
-  \item about $19.78$ GiB for one dominant tensor here.
-\end{itemize}
-\end{column}
-\end{columns}
-
-\vspace{0.25em}
-The dominant PS memory scales as
-\[
-  N_b\,C^2\,N_{\mathrm{bins}}\,H\,W.
-\]

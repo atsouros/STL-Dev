@@ -245,11 +245,11 @@ Its role is to give the scattering statistics access to morphology correlated wi
 The 5-channel cross matrix keeps only selected statistics:
 \[
 \begin{pmatrix}
-1&0&1&0&1\\
+1&0&0&0&1\\
 0&1&0&0&0\\
 0&0&1&0&1\\
 0&0&0&1&0\\
-0&0&0&0&0
+0&0&0&0&1
 \end{pmatrix}.
 \]
 
@@ -260,6 +260,210 @@ So STL measures:
   \item Q--aux and U--aux relations,
   \item no explicit Q--U or signal--residual cross terms.
 \end{itemize}
+\end{frame}
+
+\section{Power Spectrum Term}
+
+\begin{frame}[fragile]{What \texttt{ST\_COMPUTE\_PS} adds}
+With \texttt{ST\_COMPUTE\_PS = True}, the feature map is enlarged:
+\[
+  \Phi(X)=
+  \Big[
+    \text{mean},\ \text{variance},\ S_1,\ S_2,\ S_3,\ S_4,\ P
+  \Big].
+\]
+
+\vspace{0.25em}
+The new object $P$ is a radially binned cross-power spectrum of the same
+5-channel tensor:
+\[
+  X^{(i)}=
+  \begin{bmatrix}
+    d_Q\\ n_Q^{(i)}\\ d_U\\ n_U^{(i)}\\ d_I
+  \end{bmatrix}
+  \quad\text{or}\quad
+  X_{\mathrm{run}}^{(i)}(u).
+\]
+
+\vspace{0.25em}
+If \texttt{ST\_COMPUTE\_PS = False}, all scattering statistics are still computed,
+but this extra Fourier-domain power-spectrum block is omitted.
+\end{frame}
+
+\begin{frame}[fragile]{What power spectra are compared?}
+For a 5-channel minibatch,
+\[
+  P(X)\in\mathbb{C}^{N_b\times5\times5\times B},
+\]
+where $B$ is the number of radial Fourier bins.
+
+\vspace{0.25em}
+The same cross matrix is reused, so only the selected channel pairs enter the
+loss:
+\[
+  (d_Q,d_Q),\ (d_Q,d_I),\ (n_Q,n_Q),\ (d_U,d_U),\ (d_U,d_I),\ (n_U,n_U),\ (d_I,d_I).
+\]
+
+\vspace{0.25em}
+So the power-spectrum term asks the running 5-channel object to match the
+target 5-channel object also in radial Fourier power, not only in wavelet
+scattering structure.
+\end{frame}
+
+\begin{frame}[fragile]{How the code computes $P$}
+For each channel $c$, the FFT backend computes
+\[
+  \widehat X_c(k).
+\]
+
+\vspace{0.25em}
+For each radial bin $b$, it applies a Fourier mask $M_b(k)$ and forms
+\[
+  P_{c_1c_2b}
+  =
+  \left\langle
+    M_b(k)\widehat X_{c_1}(k)\,
+    \overline{\widehat X_{c_2}(k)}
+  \right\rangle_k.
+\]
+
+\vspace{0.25em}
+In the non-periodic case, the code transforms the binned maps back to real
+space, crops unreliable borders, and then averages the same channel-pair
+products.
+\end{frame}
+
+\begin{frame}[fragile]{Why this changes the loss}
+With \texttt{ST\_COMPUTE\_PS = True}, the loss contains one more constraint:
+\[
+  \mathcal L(u;I)
+  =
+  \left\|
+    \bar\Phi_{\mathrm{run}}(u;I)
+    -
+    \bar\Phi_{\mathrm{target}}(I)
+  \right\|_2^2.
+\]
+
+\vspace{0.25em}
+The power-spectrum entries inside $\Phi$ constrain the two-point Fourier
+content of
+\[
+  [u_Q+n_Q,\ d_Q-u_Q,\ u_U+n_U,\ d_U-u_U,\ d_I].
+\]
+
+\vspace{0.25em}
+The scattering entries still constrain the non-Gaussian, multi-scale,
+orientation-dependent morphology.
+\end{frame}
+
+\begin{frame}[fragile]{Memory estimate for backprop}
+Let the full 5-channel phase have
+\[
+  C=5,\qquad N_b=15,\qquad H=W=N,\qquad B\simeq N/16.
+\]
+
+\vspace{0.25em}
+For \texttt{float64}, complex tensors use 16 bytes per element.
+The first large object is the stack of binned maps:
+\[
+  X_{\mathrm{bin}}
+  \sim
+  N_b\times C\times B\times N\times N.
+\]
+
+\vspace{0.25em}
+In the non-periodic path, the code keeps both Fourier-binned maps and
+inverse-FFT binned maps. This gives the contribution
+\[
+  2\,N_bCBN^2.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Where the $C^2$ term comes from}
+The expensive step is comparing channel pairs. From the same 5-channel object,
+the code forms products of channel $c_1$ against channel $c_2$:
+\[
+  X_{\mathrm{cross}}
+  \sim
+  N_b\times C\times C\times B\times N\times N.
+\]
+
+\vspace{0.25em}
+The two $C$ factors are the two channel indices in the cross spectrum:
+\[
+  P_{c_1c_2b}.
+\]
+
+\vspace{0.25em}
+Again, in the non-periodic path there is a Fourier-side product and a
+real-space/cropped product, giving
+\[
+  2\,N_bC^2BN^2.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Combined memory estimate}
+Putting the binned-map and channel-pair terms together:
+\[
+  2\,N_bC^2BN^2
+  \quad+\quad
+  2\,N_bCBN^2
+\]
+complex numbers.
+
+\vspace{0.25em}
+So the extra saved memory is roughly
+\[
+  16\,(2N_bC^2BN^2+2N_bCBN^2)
+  =
+  900\,N^3\ \text{bytes}.
+\]
+
+\vspace{0.25em}
+The $C^2$ term is dominant because it stores all selected channel-pair
+products before the final average over pixels.
+\end{frame}
+
+\begin{frame}[fragile]{Numbers for the default setting}
+For the power-spectrum block alone:
+\[
+\begin{array}{c|c|c|c}
+N & B\simeq N/16 & \texttt{ST\_COMPUTE\_PS=False} & \texttt{ST\_COMPUTE\_PS=True}\\
+\hline
+128 & 8  & 0 & \approx 1.8\ \mathrm{GiB}\\
+256 & 16 & 0 & \approx 14.1\ \mathrm{GiB}\\
+512 & 32 & 0 & \approx 112.5\ \mathrm{GiB}\\
+1024& 64 & 0 & \approx 900\ \mathrm{GiB}
+\end{array}
+\]
+
+\vspace{0.25em}
+The final coefficients are small:
+\[
+  N_b\times C\times C\times B.
+\]
+The memory cost comes from the full-grid tensors needed to differentiate the
+power-spectrum computation.
+\end{frame}
+
+\begin{frame}[fragile]{Ways to reduce memory}
+The most direct reductions are to shrink the large power-spectrum tensors:
+\begin{itemize}
+  \item set \texttt{ST\_COMPUTE\_PS=0} when the power-spectrum constraint is not essential,
+  \item reduce \texttt{BATCH}, since memory scales linearly with $N_b$,
+  \item reduce \texttt{MAP\_SIZE}, since the estimate scales roughly like $N^3$,
+  \item use \texttt{DTYPE=float32}, which halves complex-tensor memory,
+  \item reduce the L-BFGS \texttt{history\_size}, which lowers the persistent optimizer state.
+\end{itemize}
+
+\vspace{0.25em}
+A code-level improvement would be to compute selected channel pairs or radial
+bins in smaller chunks, so the full
+\[
+  N_b\times C\times C\times B\times N\times N
+\]
+object is never materialized at once.
 \end{frame}
 
 \begin{frame}[fragile]{Optional warm-up without explicit noise channels}
@@ -313,393 +517,6 @@ The running statistics are computed inside the closure so gradients flow back to
   \item A minibatch is an extra leading dimension over selected nuisance realizations.
   \item The cross matrix decides which channel relations STL is allowed to match.
 \end{itemize}
-\end{frame}
-
-\section{Power-spectrum constraint}
-
-\begin{frame}[fragile]{Starting point: the object shape}
-In the full phase, both target and running objects have shape
-\[
-  X_{\mathrm{target}}(I),\quad X_{\mathrm{run}}(u;I)
-  \in\mathbb{R}^{N_b\times C\times H\times W}.
-\]
-
-\vspace{0.25em}
-For the run that crashes,
-\[
-  N_b=15,\qquad C=5,\qquad H=W=384.
-\]
-
-\vspace{0.25em}
-So one real batch tensor contains
-\[
-  15\times 5\times384\times384
-  =
-  11{,}059{,}200
-\]
-numbers.
-
-\vspace{0.25em}
-The factor $8$ below is because one \texttt{float64} number uses $8$ bytes:
-\[
-  11{,}059{,}200\ \text{numbers}\times 8\ \text{bytes/number}
-  \approx 88\text{ MB}
-  \quad(\approx84\text{ MiB}).
-\]
-\end{frame}
-
-\begin{frame}[fragile]{Two possible objectives}
-The difference is what statistics are requested from this same batch tensor:
-\[
-  \Phi(X)
-  =
-  \begin{cases}
-    \Phi_{\mathrm{ST}}(X), & \texttt{ST\_COMPUTE\_PS=False},\\[0.35em]
-    \bigl(\Phi_{\mathrm{ST}}(X),\,P(X)\bigr), & \texttt{ST\_COMPUTE\_PS=True}.
-  \end{cases}
-\]
-
-\vspace{0.25em}
-Here $\Phi_{\mathrm{ST}}$ contains mean, variance, and scattering coefficients.
-The optional $P$ contains cross-power-spectrum coefficients.
-
-\vspace{0.25em}
-The final loss always compares target and running statistics:
-\[
-  \mathcal{L}(u;I)
-  =
-  \|\Phi(X_{\mathrm{run}}(u;I))-\Phi(X_{\mathrm{target}}(I))\|_2^2.
-\]
-\end{frame}
-
-\begin{frame}[fragile]{Case 1: without the PS constraint}
-With
-\[
-  \texttt{ST\_COMPUTE\_PS=False},
-\]
-the target side computes
-\[
-  y_{\mathrm{target}}
-  =
-  \bar\Phi_{\mathrm{ST}}\!\left(X_{\mathrm{target}}(I)\right),
-\]
-and the running side computes
-\[
-  y_{\mathrm{run}}(u)
-  =
-  \bar\Phi_{\mathrm{ST}}\!\left(X_{\mathrm{run}}(u;I)\right).
-\]
-
-\vspace{0.25em}
-The optimized loss is
-\[
-  \mathcal{L}_{\mathrm{ST}}(u;I)
-  =
-  \|y_{\mathrm{run}}(u)-y_{\mathrm{target}}\|_2^2.
-\]
-\end{frame}
-
-\begin{frame}[fragile]{Without PS: what is kept for gradients?}
-For the target:
-\[
-  y_{\mathrm{target}}
-  =
-  \bar\Phi_{\mathrm{ST}}(X_{\mathrm{target}}(I))
-\]
-is computed inside \texttt{torch.no\_grad()}, so it is just a fixed tensor.
-
-\vspace{0.25em}
-For the running side, PyTorch keeps the graph needed for:
-\begin{itemize}
-  \item the full running batch object $X_{\mathrm{run}}(u;I)$, not one selected nuisance draw,
-  \item the wavelet/scattering intermediate tensors,
-  \item the final flattened scattering vector $y_{\mathrm{run}}(u)$.
-\end{itemize}
-
-\vspace{0.25em}
-Here $I=\{i_1,\ldots,i_{N_b}\}$ contains all nuisance draws in the minibatch.
-So the first axis of $X_{\mathrm{run}}$ stores all $N_b$ realizations at once.
-
-\vspace{0.25em}
-No power-spectrum tensors are formed or stored for backward.
-\end{frame}
-
-\begin{frame}[fragile]{Without PS: memory scale}
-The full running object is
-\[
-  X_{\mathrm{run}}(u;I)
-  \in\mathbb{R}^{15\times5\times384\times384}.
-\]
-
-\vspace{0.25em}
-Since it is real \texttt{float64}, each entry costs $8$ bytes:
-\[
-  15\times5\times384\times384\times8
-  \approx 88\text{ MB}.
-\]
-
-\vspace{0.25em}
-If an intermediate representation of the same $X$ is complex, each entry costs $16$ bytes:
-\[
-  15\times5\times384\times384\times16
-  \approx 177\text{ MB}.
-\]
-
-\vspace{0.25em}
-The scattering transform then keeps wavelet/scattering intermediates for backward.
-Those are substantial, but they are tied to the scattering operator:
-\[
-  \text{roughly scales with }N_b,\ C,\ H,\ W,\ J,\ L.
-\]
-
-\vspace{0.25em}
-Crucially, without PS there is no extra tensor with shape
-\[
-  N_b\times C\times C\times N_{\mathrm{bins}}\times H\times W.
-\]
-\end{frame}
-
-\begin{frame}[fragile]{Case 2: with the PS constraint}
-With
-\[
-  \texttt{ST\_COMPUTE\_PS=True},
-\]
-the target side computes two blocks:
-\[
-  y_{\mathrm{target}}
-  =
-  \left(
-    \bar\Phi_{\mathrm{ST}}(X_{\mathrm{target}}(I)),
-    \bar P(X_{\mathrm{target}}(I))
-  \right).
-\]
-
-\vspace{0.25em}
-The running side computes the matching two blocks:
-\[
-  y_{\mathrm{run}}(u)
-  =
-  \left(
-    \bar\Phi_{\mathrm{ST}}(X_{\mathrm{run}}(u;I)),
-    \bar P(X_{\mathrm{run}}(u;I))
-  \right).
-\]
-
-\vspace{0.25em}
-The loss is still one squared difference:
-\[
-  \mathcal{L}(u;I)
-  =
-  \|y_{\mathrm{run}}(u)-y_{\mathrm{target}}\|_2^2.
-\]
-\end{frame}
-
-\begin{frame}[fragile]{What is kept in memory with PS?}
-The target PS block is again fixed:
-\[
-  \bar P(X_{\mathrm{target}}(I))
-\]
-because it is computed under \texttt{torch.no\_grad()}.
-
-\vspace{0.25em}
-The running PS block is computed from the full running batch:
-\[
-  X_{\mathrm{run}}(u;I)
-  \in\mathbb{R}^{N_b\times C\times H\times W}
-  \quad\longmapsto\quad
-  \bar P(X_{\mathrm{run}}(u;I)).
-\]
-This block depends on $u_Q,u_U$, so PyTorch must keep its graph.
-
-\vspace{0.25em}
-This does not mean one nuisance term is kept separately.
-The whole minibatch object $X_{\mathrm{run}}(u;I)$ is the input to $P$.
-
-\vspace{0.25em}
-In addition to the scattering graph, PyTorch keeps the PS intermediates needed so that
-\[
-  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_Q},
-  \quad
-  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_U}
-\]
-can be computed during \texttt{loss.backward()}.
-\end{frame}
-
-\begin{frame}[fragile]{With PS: the first large object}
-The FFT power-spectrum operator forms binned Fourier maps:
-\[
-  X_{\mathrm{bin}}
-  \sim
-  N_b \times C \times N_{\mathrm{bins}}\times H\times W.
-\]
-
-\vspace{0.25em}
-This is still built from the full $X_{\mathrm{run}}(u;I)$.
-The $N_b$ axis is the full minibatch of nuisance draws.
-
-\vspace{0.25em}
-For a 384 map, the default is
-\[
-  N_{\mathrm{bins}}=24.
-\]
-
-\vspace{0.25em}
-So, with complex dtype,
-\[
-  15\times5\times24\times384\times384\times16
-  \approx 4.25\text{ GB}
-  \quad(\approx3.95\text{ GiB}).
-\]
-
-\vspace{0.25em}
-This is already much larger than the original real batch tensor.
-\end{frame}
-
-\begin{frame}[fragile]{With PS: the dominant cross object}
-The PS operator then forms channel-pair products of the binned $X$ object:
-\[
-  X_{\mathrm{cross}}
-  \sim
-  N_b \times C \times C \times N_{\mathrm{bins}}\times H\times W.
-\]
-
-\vspace{0.25em}
-The two $C$ factors mean ``channel against channel''.
-This is why the memory scales like $C^2$, even though the final PS coefficients are later reduced.
-
-\vspace{0.25em}
-For the current run:
-\[
-  15\times5\times5\times24\times384\times384\times16
-  \approx 21.23\text{ GB}
-  \quad(\approx19.78\text{ GiB}).
-\]
-
-\vspace{0.25em}
-This number matches the failed allocation:
-\[
-  \texttt{Tried to allocate 19.78 GiB}.
-\]
-
-\vspace{0.25em}
-So the OOM is not caused by the final number of PS coefficients.
-It is caused by forming this intermediate cross-product object from $X$.
-\end{frame}
-
-\begin{frame}[fragile]{With PS: what else is kept?}
-For non-periodic boundaries, the FFT PS path can also build intermediate objects from the same $X$:
-\begin{itemize}
-  \item the binned Fourier maps $X_{\mathrm{bin}}$,
-  \item inverse FFTs of those binned maps,
-  \item crop masks,
-  \item real-space products with the original $X$,
-  \item the final reduced power-spectrum tensor $P(X)$.
-\end{itemize}
-
-\vspace{0.25em}
-The final $P(X)$ tensor is small compared to $X_{\mathrm{cross}}$.
-The costly part is the temporary path used to get to $P(X)$.
-
-\vspace{0.25em}
-During the running-side computation, PyTorch keeps enough of this path to compute
-\[
-  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_Q},
-  \qquad
-  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_U}.
-\]
-\end{frame}
-
-\begin{frame}[fragile]{Why the coefficient count can look harmless}
-The printed line
-\[
-  \texttt{43706/361810 finite}
-\]
-refers to the final flattened statistics after all reductions.
-
-\vspace{0.25em}
-It does \emph{not} count the temporary tensors used to compute those statistics:
-\[
-  X_{\mathrm{bin}},\quad X_{\mathrm{cross}},\quad
-  \text{IFFT products},\quad \text{saved backward tensors}.
-\]
-
-\vspace{0.25em}
-Thus two runs can have similar final coefficient counts:
-\[
-  \dim y_{\mathrm{run}}
-  \quad\text{similar},
-\]
-but very different backward memory:
-\[
-  \text{scattering graph only}
-  \quad\text{vs.}\quad
-  \text{scattering graph + PS graph}.
-\]
-
-\vspace{0.25em}
-The OOM occurs when the running PS graph is retained for differentiation.
-\end{frame}
-
-\begin{frame}[fragile]{Target side versus running side}
-For both settings, target statistics are computed under
-\[
-  \texttt{torch.no\_grad()}.
-\]
-
-\vspace{0.25em}
-So the target PS computation may temporarily allocate large tensors, but it does not keep a backward graph.
-
-\vspace{0.25em}
-The running side is different:
-\[
-  X_{\mathrm{run}}(u;I)
-  \quad\text{depends on}\quad
-  u_Q,\ u_U.
-\]
-
-\vspace{0.25em}
-Therefore, with PS on, the large PS intermediates are saved for \texttt{loss.backward()}.
-That is why the crash happens after the coefficient count is printed.
-\end{frame}
-
-\begin{frame}[fragile]{Summary of the comparison}
-\begin{columns}[T,totalwidth=\textwidth]
-\begin{column}{0.48\textwidth}
-\textbf{Without PS}
-\begin{itemize}
-  \item compute $\Phi_{\mathrm{ST}}$,
-  \item keep scattering intermediates for running side,
-  \item no $P(X)$ tensors,
-  \item no $N_b C^2 N_{\mathrm{bins}}HW$ object.
-\end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{With PS}
-\begin{itemize}
-  \item compute $\Phi_{\mathrm{ST}}$ and $P$,
-  \item keep scattering intermediates,
-  \item keep binned FFT maps,
-  \item keep cross-spectrum object,
-  \item about $19.78$ GiB for one dominant tensor here.
-\end{itemize}
-\end{column}
-\end{columns}
-
-\vspace{0.25em}
-The dominant PS memory scales as
-\[
-  N_b\,C^2\,N_{\mathrm{bins}}\,H\,W.
-\]
-\end{frame}
-
-\begin{frame}{Results}
-\centering
-\IfFileExists{figures/loss_curve_planck.png}{%
-  \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{figures/loss_curve_planck.png}%
-}{%
-  \vspace{1em}
-  \Large Loss curve is written to \texttt{results/loss\_curve\_planck.png}
-}
 \end{frame}
 
 \end{document}
