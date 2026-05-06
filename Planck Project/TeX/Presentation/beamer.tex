@@ -1,0 +1,705 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usetheme{Madrid}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{currfile}
+
+\title[Planck Polarization Separation]{Planck Polarization Component Separation in STL}
+\author{Alexandros Tsouros}
+\date{}
+
+\graphicspath{{\currfiledir}{\currfiledir figures/}{figures/}}
+
+\begin{document}
+
+\begin{frame}[fragile]
+  \titlepage
+\end{frame}
+
+\begin{frame}[fragile]{Problem setup}
+We observe a Planck polarization patch:
+\[
+  d_Q,\ d_U\in\mathbb{R}^{H\times W}.
+\]
+
+\vspace{0.25em}
+The goal is to recover two unknown signal maps
+\[
+  \tilde s=(\tilde s_Q,\tilde s_U),
+\]
+using:
+\begin{itemize}
+  \item the observed Q/U maps,
+  \item paired nuisance samples $(n_Q^{(i)},n_U^{(i)})$,
+  \item a fixed auxiliary dust tracer $d_I$ from I857.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{What is optimized?}
+The optimization variable is the two-map tensor
+\[
+  u=\begin{bmatrix}u_Q\\u_U\end{bmatrix}\in\mathbb{R}^{2\times H\times W}.
+\]
+
+\vspace{0.25em}
+Everything else is fixed during a minibatch step:
+\[
+  d_Q,\ d_U,\ d_I,\quad \{(n_Q^{(i)},n_U^{(i)})\}_{i\in I}.
+\]
+
+\vspace{0.25em}
+The code initializes $u$ either from the data maps or from white noise with matching standard deviations.
+After optimization, the final recovered maps are denoted
+\[
+  \tilde s_Q,\ \tilde s_U.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Core idea: match scattering statistics}
+Define a feature map $\Phi(\cdot)$ from STL scattering statistics.
+
+\vspace{0.35em}
+For a minibatch of nuisance indices $I$, compare:
+\[
+  y(I)=\Phi\!\left(X_{\mathrm{target}}(I)\right),
+  \qquad
+  \tilde y(u;I)=\Phi\!\left(X_{\mathrm{run}}(u;I)\right).
+\]
+
+\vspace{0.25em}
+The loss is simply
+\[
+  \mathcal{L}(u;I)=\|\tilde y(u;I)-y(I)\|_2^2.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Choosing noise realizations}
+The nuisance files are paired before optimization:
+\[
+  (n_Q^{(j)},n_U^{(j)})\quad\text{share the same noise/CMB-residual seed key.}
+\]
+
+\vspace{0.25em}
+At one optimization step, the script samples a set of indices
+\[
+  I=\{i_1,\ldots,i_{N_b}\},
+\]
+
+\vspace{0.25em}
+For those indices it loads
+\[
+  n_Q^I,\ n_U^I\in\mathbb{R}^{N_b\times H\times W}.
+\]
+This leading dimension is the noise-realization dimension.
+\end{frame}
+
+\begin{frame}[fragile]{The batch dimension}
+Each selected realization is treated as one batch element.
+The maps that do not depend on the realization are broadcast along this dimension:
+\[
+  d_Q,d_U,d_I,u_Q,u_U\in\mathbb{R}^{H\times W}
+  \quad\longrightarrow\quad
+  \mathbb{R}^{N_b\times H\times W}.
+\]
+
+\vspace{0.25em}
+After broadcasting fixed maps and inserting the sampled nuisance maps,
+the channels are stacked:
+\[
+  X_{\mathrm{target}}(I),\ X_{\mathrm{run}}(u;I)
+  \in\mathbb{R}^{N_b\times C\times H\times W}.
+\]
+
+\vspace{0.25em}
+Here $C=5$ in the full phase and $C=3$ in the optional warm-up phase.
+\end{frame}
+
+\begin{frame}[fragile]{Averaging over realizations}
+STL is applied to the whole batch tensor, not to one realization at a time:
+\[
+  X(I)\in\mathbb{R}^{N_b\times C\times H\times W}
+  \quad\longmapsto\quad
+  \Phi(X(I)).
+\]
+
+\vspace{0.25em}
+The flattened statistics are then averaged along the batch dimension.
+So the loss compares the \emph{mean} STL statistics over the selected realizations:
+\[
+  \bar\Phi_{\mathrm{target}}(I)
+  \quad\text{against}\quad
+  \bar\Phi_{\mathrm{run}}(u;I).
+\]
+
+\vspace{0.25em}
+This means one optimizer step asks the same running maps $u_Q,u_U$ to work across several nuisance realizations at once.
+\end{frame}
+
+\begin{frame}[fragile]{The target channels}
+For each selected nuisance pair $(n_Q^{(i)},n_U^{(i)})$, the target batch element is
+\[
+  X_{\mathrm{target}}^{(i)}
+  =
+  \begin{bmatrix}
+    d_Q\\
+    n_Q^{(i)}\\
+    d_U\\
+    n_U^{(i)}\\
+    d_I
+\end{bmatrix}
+  \in \mathbb{R}^{5\times H\times W}.
+\]
+
+\vspace{0.25em}
+Across all selected indices:
+\[
+  X_{\mathrm{target}}(I)\in\mathbb{R}^{N_b\times5\times H\times W}.
+\]
+The observed maps and auxiliary map are repeated across the batch; only the nuisance maps vary with $i$.
+\end{frame}
+
+\begin{frame}[fragile]{The running channels}
+For the current running maps $u=(u_Q,u_U)$, each running batch element is
+\[
+  X_{\mathrm{run}}^{(i)}(u)
+  =
+  \begin{bmatrix}
+    u_Q+n_Q^{(i)}\\
+    d_Q-u_Q\\
+    u_U+n_U^{(i)}\\
+    d_U-u_U\\
+    d_I
+  \end{bmatrix}.
+\]
+
+\vspace{0.25em}
+Across all selected noise realizations:
+\[
+  X_{\mathrm{run}}(u;I)\in\mathbb{R}^{N_b\times5\times H\times W}.
+\]
+
+\vspace{0.25em}
+Each polarization field is split into:
+\begin{itemize}
+  \item a \emph{data-like} channel: running map plus sampled nuisance,
+  \item a \emph{residual} channel: what remains in the observed map.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{How fields are put into one channel}
+The first and third running channels are the key construction:
+\[
+  u_Q+n_Q^{(i)},\qquad
+  u_U+n_U^{(i)}.
+\]
+
+\vspace{0.25em}
+This deliberately makes one channel look like an observed polarization map:
+\[
+  \text{structured signal field} + \text{one nuisance realization}.
+\]
+
+\vspace{0.25em}
+The optimizer changes the same $u_Q,u_U$ for all batch elements.
+The only difference between batch elements is which nuisance realization is added.
+\end{frame}
+
+\begin{frame}[fragile]{The residual channels}
+The second and fourth channels are not sampled:
+\[
+  r_Q=d_Q-u_Q,\qquad r_U=d_U-u_U.
+\]
+
+\vspace{0.25em}
+They are repeated across the minibatch:
+\[
+  r_Q,\ r_U \in \mathbb{R}^{H\times W}
+  \quad\longrightarrow\quad
+  \mathbb{R}^{N_b\times H\times W}.
+\]
+
+\vspace{0.25em}
+This lets STL see whether the part removed from the data behaves like the nuisance channels.
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary dust tracer}
+The I857 map is a fixed auxiliary channel:
+\[
+  d_I = I857 - \langle I857\rangle.
+\]
+
+\vspace{0.25em}
+It is included in both target and running tensors, unchanged:
+\[
+  X_{\mathrm{target}}:\ d_I,\qquad X_{\mathrm{run}}:\ d_I.
+\]
+
+\vspace{0.25em}
+Its role is to give the scattering statistics access to morphology correlated with polarized dust.
+\end{frame}
+
+\begin{frame}[fragile]{Which channel relations are measured?}
+The 5-channel cross matrix keeps only selected statistics:
+\[
+\begin{pmatrix}
+1&0&1&0&1\\
+0&1&0&0&0\\
+0&0&1&0&1\\
+0&0&0&1&0\\
+0&0&0&0&0
+\end{pmatrix}.
+\]
+
+\vspace{0.25em}
+So STL measures:
+\begin{itemize}
+  \item auto-statistics of all channels,
+  \item Q--aux and U--aux relations,
+  \item no explicit Q--U or signal--residual cross terms.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Optional warm-up without explicit noise channels}
+The script can begin with a simpler 3-channel phase:
+\[
+  X_{\mathrm{target}}^{(i)}=
+  \begin{bmatrix}d_Q\\d_U\\d_I\end{bmatrix},
+  \qquad
+  X_{\mathrm{run}}^{(i)}(u)=
+  \begin{bmatrix}u_Q+n_Q^{(i)}\\u_U+n_U^{(i)}\\d_I\end{bmatrix}.
+\]
+
+\vspace{0.25em}
+This phase matches data-like Q/U channels before introducing explicit residual channels.
+\end{frame}
+
+\begin{frame}[fragile]{Normalization and operators}
+Two STL operators are built:
+\[
+  \Phi_3 \quad\text{for 3 channels},\qquad
+  \Phi_5 \quad\text{for 5 channels}.
+\]
+
+\vspace{0.25em}
+Each stores a fixed normalization reference once, then reuses it during optimization:
+\[
+  \texttt{store\_ref}\quad\rightarrow\quad\texttt{load\_ref}.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Minibatch loop}
+At each optimization step:
+\begin{enumerate}
+  \item choose paired nuisance indices $I$,
+  \item build target statistics once,
+  \item build running statistics inside the closure,
+  \item take one L-BFGS optimizer step.
+\end{enumerate}
+
+\vspace{0.25em}
+The target statistics are computed without gradients.
+The running statistics are computed inside the closure so gradients flow back to $u_Q,u_U$.
+\end{frame}
+
+\begin{frame}[fragile]{Takeaways}
+\begin{itemize}
+  \item The optimized running maps are $u_Q,u_U$; the final maps are denoted $\tilde s_Q,\tilde s_U$.
+  \item Target channels contain observed Q/U, sampled Q/U nuisance, and fixed I857.
+  \item Running channels mix fields as $u_Q+n_Q$ and $u_U+n_U$.
+  \item Residual channels $d_Q-u_Q$ and $d_U-u_U$ expose what the running maps leave behind.
+  \item A minibatch is an extra leading dimension over selected nuisance realizations.
+  \item The cross matrix decides which channel relations STL is allowed to match.
+\end{itemize}
+\end{frame}
+
+\section{Power-spectrum constraint}
+
+\begin{frame}[fragile]{Starting point: the object shape}
+In the full phase, both target and running objects have shape
+\[
+  X_{\mathrm{target}}(I),\quad X_{\mathrm{run}}(u;I)
+  \in\mathbb{R}^{N_b\times C\times H\times W}.
+\]
+
+\vspace{0.25em}
+For the run that crashes,
+\[
+  N_b=15,\qquad C=5,\qquad H=W=384.
+\]
+
+\vspace{0.25em}
+So one real batch tensor contains
+\[
+  15\times 5\times384\times384
+  =
+  11{,}059{,}200
+\]
+numbers.
+
+\vspace{0.25em}
+The factor $8$ below is because one \texttt{float64} number uses $8$ bytes:
+\[
+  11{,}059{,}200\ \text{numbers}\times 8\ \text{bytes/number}
+  \approx 88\text{ MB}
+  \quad(\approx84\text{ MiB}).
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Two possible objectives}
+The difference is what statistics are requested from this same batch tensor:
+\[
+  \Phi(X)
+  =
+  \begin{cases}
+    \Phi_{\mathrm{ST}}(X), & \texttt{ST\_COMPUTE\_PS=False},\\[0.35em]
+    \bigl(\Phi_{\mathrm{ST}}(X),\,P(X)\bigr), & \texttt{ST\_COMPUTE\_PS=True}.
+  \end{cases}
+\]
+
+\vspace{0.25em}
+Here $\Phi_{\mathrm{ST}}$ contains mean, variance, and scattering coefficients.
+The optional $P$ contains cross-power-spectrum coefficients.
+
+\vspace{0.25em}
+The final loss always compares target and running statistics:
+\[
+  \mathcal{L}(u;I)
+  =
+  \|\Phi(X_{\mathrm{run}}(u;I))-\Phi(X_{\mathrm{target}}(I))\|_2^2.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Case 1: without the PS constraint}
+With
+\[
+  \texttt{ST\_COMPUTE\_PS=False},
+\]
+the target side computes
+\[
+  y_{\mathrm{target}}
+  =
+  \bar\Phi_{\mathrm{ST}}\!\left(X_{\mathrm{target}}(I)\right),
+\]
+and the running side computes
+\[
+  y_{\mathrm{run}}(u)
+  =
+  \bar\Phi_{\mathrm{ST}}\!\left(X_{\mathrm{run}}(u;I)\right).
+\]
+
+\vspace{0.25em}
+The optimized loss is
+\[
+  \mathcal{L}_{\mathrm{ST}}(u;I)
+  =
+  \|y_{\mathrm{run}}(u)-y_{\mathrm{target}}\|_2^2.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Without PS: what is kept for gradients?}
+For the target:
+\[
+  y_{\mathrm{target}}
+  =
+  \bar\Phi_{\mathrm{ST}}(X_{\mathrm{target}}(I))
+\]
+is computed inside \texttt{torch.no\_grad()}, so it is just a fixed tensor.
+
+\vspace{0.25em}
+For the running side, PyTorch keeps the graph needed for:
+\begin{itemize}
+  \item the full running batch object $X_{\mathrm{run}}(u;I)$, not one selected nuisance draw,
+  \item the wavelet/scattering intermediate tensors,
+  \item the final flattened scattering vector $y_{\mathrm{run}}(u)$.
+\end{itemize}
+
+\vspace{0.25em}
+Here $I=\{i_1,\ldots,i_{N_b}\}$ contains all nuisance draws in the minibatch.
+So the first axis of $X_{\mathrm{run}}$ stores all $N_b$ realizations at once.
+
+\vspace{0.25em}
+No power-spectrum tensors are formed or stored for backward.
+\end{frame}
+
+\begin{frame}[fragile]{Without PS: memory scale}
+The full running object is
+\[
+  X_{\mathrm{run}}(u;I)
+  \in\mathbb{R}^{15\times5\times384\times384}.
+\]
+
+\vspace{0.25em}
+Since it is real \texttt{float64}, each entry costs $8$ bytes:
+\[
+  15\times5\times384\times384\times8
+  \approx 88\text{ MB}.
+\]
+
+\vspace{0.25em}
+If an intermediate representation of the same $X$ is complex, each entry costs $16$ bytes:
+\[
+  15\times5\times384\times384\times16
+  \approx 177\text{ MB}.
+\]
+
+\vspace{0.25em}
+The scattering transform then keeps wavelet/scattering intermediates for backward.
+Those are substantial, but they are tied to the scattering operator:
+\[
+  \text{roughly scales with }N_b,\ C,\ H,\ W,\ J,\ L.
+\]
+
+\vspace{0.25em}
+Crucially, without PS there is no extra tensor with shape
+\[
+  N_b\times C\times C\times N_{\mathrm{bins}}\times H\times W.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Case 2: with the PS constraint}
+With
+\[
+  \texttt{ST\_COMPUTE\_PS=True},
+\]
+the target side computes two blocks:
+\[
+  y_{\mathrm{target}}
+  =
+  \left(
+    \bar\Phi_{\mathrm{ST}}(X_{\mathrm{target}}(I)),
+    \bar P(X_{\mathrm{target}}(I))
+  \right).
+\]
+
+\vspace{0.25em}
+The running side computes the matching two blocks:
+\[
+  y_{\mathrm{run}}(u)
+  =
+  \left(
+    \bar\Phi_{\mathrm{ST}}(X_{\mathrm{run}}(u;I)),
+    \bar P(X_{\mathrm{run}}(u;I))
+  \right).
+\]
+
+\vspace{0.25em}
+The loss is still one squared difference:
+\[
+  \mathcal{L}(u;I)
+  =
+  \|y_{\mathrm{run}}(u)-y_{\mathrm{target}}\|_2^2.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{What is kept in memory with PS?}
+The target PS block is again fixed:
+\[
+  \bar P(X_{\mathrm{target}}(I))
+\]
+because it is computed under \texttt{torch.no\_grad()}.
+
+\vspace{0.25em}
+The running PS block is computed from the full running batch:
+\[
+  X_{\mathrm{run}}(u;I)
+  \in\mathbb{R}^{N_b\times C\times H\times W}
+  \quad\longmapsto\quad
+  \bar P(X_{\mathrm{run}}(u;I)).
+\]
+This block depends on $u_Q,u_U$, so PyTorch must keep its graph.
+
+\vspace{0.25em}
+This does not mean one nuisance term is kept separately.
+The whole minibatch object $X_{\mathrm{run}}(u;I)$ is the input to $P$.
+
+\vspace{0.25em}
+In addition to the scattering graph, PyTorch keeps the PS intermediates needed so that
+\[
+  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_Q},
+  \quad
+  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_U}
+\]
+can be computed during \texttt{loss.backward()}.
+\end{frame}
+
+\begin{frame}[fragile]{With PS: the first large object}
+The FFT power-spectrum operator forms binned Fourier maps:
+\[
+  X_{\mathrm{bin}}
+  \sim
+  N_b \times C \times N_{\mathrm{bins}}\times H\times W.
+\]
+
+\vspace{0.25em}
+This is still built from the full $X_{\mathrm{run}}(u;I)$.
+The $N_b$ axis is the full minibatch of nuisance draws.
+
+\vspace{0.25em}
+For a 384 map, the default is
+\[
+  N_{\mathrm{bins}}=24.
+\]
+
+\vspace{0.25em}
+So, with complex dtype,
+\[
+  15\times5\times24\times384\times384\times16
+  \approx 4.25\text{ GB}
+  \quad(\approx3.95\text{ GiB}).
+\]
+
+\vspace{0.25em}
+This is already much larger than the original real batch tensor.
+\end{frame}
+
+\begin{frame}[fragile]{With PS: the dominant cross object}
+The PS operator then forms channel-pair products of the binned $X$ object:
+\[
+  X_{\mathrm{cross}}
+  \sim
+  N_b \times C \times C \times N_{\mathrm{bins}}\times H\times W.
+\]
+
+\vspace{0.25em}
+The two $C$ factors mean ``channel against channel''.
+This is why the memory scales like $C^2$, even though the final PS coefficients are later reduced.
+
+\vspace{0.25em}
+For the current run:
+\[
+  15\times5\times5\times24\times384\times384\times16
+  \approx 21.23\text{ GB}
+  \quad(\approx19.78\text{ GiB}).
+\]
+
+\vspace{0.25em}
+This number matches the failed allocation:
+\[
+  \texttt{Tried to allocate 19.78 GiB}.
+\]
+
+\vspace{0.25em}
+So the OOM is not caused by the final number of PS coefficients.
+It is caused by forming this intermediate cross-product object from $X$.
+\end{frame}
+
+\begin{frame}[fragile]{With PS: what else is kept?}
+For non-periodic boundaries, the FFT PS path can also build intermediate objects from the same $X$:
+\begin{itemize}
+  \item the binned Fourier maps $X_{\mathrm{bin}}$,
+  \item inverse FFTs of those binned maps,
+  \item crop masks,
+  \item real-space products with the original $X$,
+  \item the final reduced power-spectrum tensor $P(X)$.
+\end{itemize}
+
+\vspace{0.25em}
+The final $P(X)$ tensor is small compared to $X_{\mathrm{cross}}$.
+The costly part is the temporary path used to get to $P(X)$.
+
+\vspace{0.25em}
+During the running-side computation, PyTorch keeps enough of this path to compute
+\[
+  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_Q},
+  \qquad
+  \frac{\partial \mathcal{L}_{\mathrm{PS}}}{\partial u_U}.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Why the coefficient count can look harmless}
+The printed line
+\[
+  \texttt{43706/361810 finite}
+\]
+refers to the final flattened statistics after all reductions.
+
+\vspace{0.25em}
+It does \emph{not} count the temporary tensors used to compute those statistics:
+\[
+  X_{\mathrm{bin}},\quad X_{\mathrm{cross}},\quad
+  \text{IFFT products},\quad \text{saved backward tensors}.
+\]
+
+\vspace{0.25em}
+Thus two runs can have similar final coefficient counts:
+\[
+  \dim y_{\mathrm{run}}
+  \quad\text{similar},
+\]
+but very different backward memory:
+\[
+  \text{scattering graph only}
+  \quad\text{vs.}\quad
+  \text{scattering graph + PS graph}.
+\]
+
+\vspace{0.25em}
+The OOM occurs when the running PS graph is retained for differentiation.
+\end{frame}
+
+\begin{frame}[fragile]{Target side versus running side}
+For both settings, target statistics are computed under
+\[
+  \texttt{torch.no\_grad()}.
+\]
+
+\vspace{0.25em}
+So the target PS computation may temporarily allocate large tensors, but it does not keep a backward graph.
+
+\vspace{0.25em}
+The running side is different:
+\[
+  X_{\mathrm{run}}(u;I)
+  \quad\text{depends on}\quad
+  u_Q,\ u_U.
+\]
+
+\vspace{0.25em}
+Therefore, with PS on, the large PS intermediates are saved for \texttt{loss.backward()}.
+That is why the crash happens after the coefficient count is printed.
+\end{frame}
+
+\begin{frame}[fragile]{Summary of the comparison}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Without PS}
+\begin{itemize}
+  \item compute $\Phi_{\mathrm{ST}}$,
+  \item keep scattering intermediates for running side,
+  \item no $P(X)$ tensors,
+  \item no $N_b C^2 N_{\mathrm{bins}}HW$ object.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{With PS}
+\begin{itemize}
+  \item compute $\Phi_{\mathrm{ST}}$ and $P$,
+  \item keep scattering intermediates,
+  \item keep binned FFT maps,
+  \item keep cross-spectrum object,
+  \item about $19.78$ GiB for one dominant tensor here.
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.25em}
+The dominant PS memory scales as
+\[
+  N_b\,C^2\,N_{\mathrm{bins}}\,H\,W.
+\]
+\end{frame}
+
+\begin{frame}{Results}
+\centering
+\IfFileExists{figures/loss_curve_planck.png}{%
+  \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{figures/loss_curve_planck.png}%
+}{%
+  \vspace{1em}
+  \Large Loss curve is written to \texttt{results/loss\_curve\_planck.png}
+}
+\end{frame}
+
+\end{document}

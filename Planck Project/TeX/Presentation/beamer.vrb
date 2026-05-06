@@ -1,0 +1,28 @@
+\frametitle{Summary of the comparison}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Without PS}
+\begin{itemize}
+  \item compute $\Phi_{\mathrm{ST}}$,
+  \item keep scattering intermediates for running side,
+  \item no $P(X)$ tensors,
+  \item no $N_b C^2 N_{\mathrm{bins}}HW$ object.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{With PS}
+\begin{itemize}
+  \item compute $\Phi_{\mathrm{ST}}$ and $P$,
+  \item keep scattering intermediates,
+  \item keep binned FFT maps,
+  \item keep cross-spectrum object,
+  \item about $19.78$ GiB for one dominant tensor here.
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.25em}
+The dominant PS memory scales as
+\[
+  N_b\,C^2\,N_{\mathrm{bins}}\,H\,W.
+\]
