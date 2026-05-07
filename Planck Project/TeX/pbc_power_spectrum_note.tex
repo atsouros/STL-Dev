@@ -1,0 +1,243 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{mathtools}
+\usepackage{enumitem}
+
+\title{Power-Spectrum Computation With and Without Periodic Boundary Conditions}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{The object being analyzed}
+
+In the full Planck component-separation phase, each minibatch object is a
+5-channel map
+\[
+  X \in \mathbb{R}^{N_b\times C\times N\times N},
+  \qquad C=5.
+\]
+For one nuisance realization $i$, the target channels are
+\[
+  X_{\mathrm{target}}^{(i)}
+  =
+  \begin{bmatrix}
+    d_Q\\
+    n_Q^{(i)}\\
+    d_U\\
+    n_U^{(i)}\\
+    d_I
+  \end{bmatrix},
+\]
+and the running channels are
+\[
+  X_{\mathrm{run}}^{(i)}(u)
+  =
+  \begin{bmatrix}
+    u_Q+n_Q^{(i)}\\
+    d_Q-u_Q\\
+    u_U+n_U^{(i)}\\
+    d_U-u_U\\
+    d_I
+  \end{bmatrix}.
+\]
+
+The power-spectrum term computes, for each minibatch element, channel pair,
+and radial Fourier bin,
+\[
+  P(X)\in\mathbb{C}^{N_b\times C\times C\times B}.
+\]
+Here $B$ is the number of radial Fourier bins. The two $C$ indices correspond
+to a channel pair $(c_1,c_2)$.
+
+\section{Common Fourier-bin construction}
+
+Let
+\[
+  \widehat X_{a,c}(k)
+\]
+be the 2D Fourier transform of minibatch element $a$ and channel $c$, where
+$k=(k_x,k_y)$ is a discrete Fourier pixel.
+
+For each radial bin $b$, the code constructs a smooth radial mask
+\[
+  M_b(k).
+\]
+This mask selects Fourier modes whose radius $|k|$ lies near bin $b$.
+
+The first common intermediate is the binned Fourier map
+\[
+  \widehat X^{(b)}_{a,c}(k)
+  =
+  M_b(k)\widehat X_{a,c}(k).
+\]
+In tensor form this has shape
+\[
+  N_b\times C\times B\times N\times N.
+\]
+
+\section{\texttt{PBC=True}: periodic power-spectrum estimate}
+
+When \texttt{PBC=True}, the map is treated as periodic. In that case, Fourier
+modes are taken as the natural orthogonal basis of the domain, and the code
+stays entirely in Fourier space.
+
+For a channel pair $(c_1,c_2)$ and bin $b$, the code computes
+\[
+  P^{\mathrm{pbc}}_{a,c_1,c_2,b}
+  =
+  \frac{
+    \sum_k
+    M_b(k)\widehat X_{a,c_1}(k)
+    \overline{\widehat X_{a,c_2}(k)}
+  }{
+    \sum_k M_b(k)
+  }.
+\]
+
+Equivalently,
+\[
+  P^{\mathrm{pbc}}_{a,c_1,c_2,b}
+  =
+  \left\langle
+    \widehat X^{(b)}_{a,c_1}(k)
+    \overline{\widehat X_{a,c_2}(k)}
+  \right\rangle_{k,b},
+\]
+where $\langle\cdot\rangle_{k,b}$ denotes an average over Fourier pixels
+weighted by the radial bin mask.
+
+\subsection*{Interpretation}
+
+This branch asks: for the 5-channel object, how much Fourier power or
+cross-power does each selected channel pair have in radial bin $b$?
+
+For example,
+\[
+  P_{0,0,b}
+\]
+is the binned auto-power of the first channel, and
+\[
+  P_{0,4,b}
+\]
+is the binned cross-power between the first channel and the auxiliary
+$d_I$ channel.
+
+\section{\texttt{PBC=False}: non-periodic power-spectrum estimate}
+
+When \texttt{PBC=False}, the map is not assumed to wrap around at the edges.
+This matters because FFTs implicitly treat the input as periodic. If the left
+and right edges, or top and bottom edges, do not match, a direct Fourier
+estimate can contain edge artifacts.
+
+The code therefore changes strategy after constructing the binned Fourier maps.
+It transforms each binned map back to real space:
+\[
+  X^{(b)}_{a,c}(x)
+  =
+  \mathcal{F}^{-1}
+  \left[
+    M_b(k)\widehat X_{a,c}(k)
+  \right](x).
+\]
+
+Then, instead of averaging in Fourier space, it forms a real-space product
+between the binned first channel and the unbinned second channel:
+\[
+  X^{(b)}_{a,c_1}(x)\,\overline{X_{a,c_2}(x)}.
+\]
+
+\subsection*{Crop mask}
+
+The binned inverse transform $X^{(b)}$ is affected by boundaries. The code
+therefore builds a bin-dependent square crop mask
+\[
+  W_b(x)\in\{0,1\},
+\]
+which is zero near the border and one in the retained central region.
+
+The non-periodic estimate is then approximately
+\[
+  P^{\mathrm{nonpbc}}_{a,c_1,c_2,b}
+  =
+  A_b
+  \frac{
+    \sum_x
+    W_b(x)\,
+    X^{(b)}_{a,c_1}(x)\,
+    \overline{X_{a,c_2}(x)}
+  }{
+    \sum_k M_b(k)
+  }.
+\]
+The factor $A_b$ compensates for the fact that only part of the real-space
+image is kept:
+\[
+  A_b
+  =
+  \frac{N^2}{\sum_x W_b(x)}.
+\]
+
+\subsection*{Interpretation}
+
+This branch tries to estimate the same radial cross-power while reducing edge
+contamination. It does this by:
+\begin{enumerate}[label=\arabic*.]
+  \item filtering one channel by radial Fourier bin,
+  \item transforming the filtered map back to real space,
+  \item multiplying by the second channel in real space,
+  \item averaging only over a central square region.
+\end{enumerate}
+
+The important difference from \texttt{PBC=True} is the square crop mask
+$W_b(x)$. This makes the non-periodic estimate spatially non-uniform: pixels
+inside the crop contribute, pixels outside the crop do not.
+
+\section{Why the two branches can behave differently}
+
+With \texttt{PBC=True}, the power-spectrum term is spatially uniform. Every
+Fourier mode contributes through the radial mask, and there is no real-space
+crop:
+\[
+  \texttt{PBC=True}
+  \quad\Rightarrow\quad
+  \text{Fourier average only.}
+\]
+
+With \texttt{PBC=False}, the power-spectrum term contains bin-dependent
+real-space square masks:
+\[
+  \texttt{PBC=False}
+  \quad\Rightarrow\quad
+  \text{Fourier binning} + \text{real-space cropped average.}
+\]
+
+Therefore, when the power-spectrum loss is backpropagated to the recovered
+maps $u_Q,u_U$, the \texttt{PBC=False} branch can imprint the geometry of the
+crop masks into the gradient. This is a plausible source of square or block-like
+features in recovered maps when \texttt{ST\_COMPUTE\_PS=True}.
+
+\section{Memory shapes}
+
+Both branches construct binned Fourier maps with shape
+\[
+  N_b\times C\times B\times N\times N.
+\]
+
+They also form channel-pair products with shape
+\[
+  N_b\times C\times C\times B\times N\times N.
+\]
+
+For \texttt{PBC=False}, the code additionally keeps analogous real-space
+objects for the inverse-FFT and cropped-product path. This is why the rough
+backpropagation memory estimate contains
+\[
+  2N_bCBN^2 + 2N_bC^2BN^2
+\]
+complex-valued full-grid quantities.
+
+\end{document}
