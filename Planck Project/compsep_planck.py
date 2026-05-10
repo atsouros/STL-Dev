@@ -288,7 +288,7 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
     # -------------------------------------------------------------------------
     CROSS_MATRIX_NO_NOISE_CHANNELS = torch.tensor(
         [
-            [1, 0, 1],
+            [1, 1, 1],
             [0, 1, 1],
             [0, 0, 1],
         ],
@@ -297,7 +297,7 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
     )
     CROSS_MATRIX_WITH_NOISE_CHANNELS = torch.tensor(
         [
-            [1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 1],
             [0, 1, 0, 0, 0],
             [0, 0, 1, 0, 1],
             [0, 0, 0, 1, 0],

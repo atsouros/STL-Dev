@@ -1,0 +1,21 @@
+\frametitle{Expected effect}
+The PS term still constrains radial Fourier power of the full 5-channel object:
+\[
+  [u_Q+n_Q,\ d_Q-u_Q,\ u_U+n_U,\ d_U-u_U,\ d_I].
+\]
+
+\vspace{0.25em}
+The intended change is only geometric:
+\begin{itemize}
+  \item keep the non-periodic boundary correction,
+  \item remove the hard square support,
+  \item make the PS gradient vary smoothly near the borders,
+  \item reduce or eliminate the square artifact in recovered $u_Q,u_U$.
+\end{itemize}
+
+\vspace{0.25em}
+The diagnostic run to compare is therefore:
+\[
+  \texttt{PBC=False},\quad \texttt{ST\_COMPUTE\_PS=True}
+\]
+before and after the apodization change.
