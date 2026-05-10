@@ -30,6 +30,7 @@ cd "$SLURM_SUBMIT_DIR" || exit 1
 export OMP_NUM_THREADS=32
 export NUMBA_NUM_THREADS=32
 export PYTHONUNBUFFERED=1
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 export PATCH_START=0
 export PATCH_END=192
@@ -57,7 +58,7 @@ export WTYPE="Bump-Steerable"
 export WHITE_NOISE_INITIAL=False
 export BATCH=15
 export EPOCHS=1
-export EPOCH_STEPS=100
+export EPOCH_STEPS=60
 export LBFGS_MAX_ITER=100
 export SEED=2
 
@@ -82,11 +83,32 @@ echo "Submit dir: $SLURM_SUBMIT_DIR"
 echo "Output dir: $OUTDIR"
 echo "Python script: $SLURM_SUBMIT_DIR/compsep_planck.py"
 
-srun -N1 \
-  -n4 \
-  --ntasks-per-node=4 \
-  --gpus-per-task=1 \
-  --cpus-per-task=32 \
-  python -u compsep_planck.py
+for chunk_start in $(seq "$PATCH_START" 4 "$PATCH_END"); do
+  chunk_end=$((chunk_start + 3))
+  if [ "$chunk_end" -gt "$PATCH_END" ]; then
+    chunk_end="$PATCH_END"
+  fi
+
+  patch_list=""
+  for patch in $(seq "$chunk_start" "$chunk_end"); do
+    if [ -z "$patch_list" ]; then
+      patch_list="$patch"
+    else
+      patch_list="${patch_list},${patch}"
+    fi
+  done
+
+  export PATCH_LIST="$patch_list"
+  echo "Launching patch chunk: PATCH_LIST=$PATCH_LIST"
+
+  srun -N1 \
+    -n4 \
+    --ntasks-per-node=4 \
+    --gpus-per-task=1 \
+    --cpus-per-task=32 \
+    python -u compsep_planck.py
+done
+
+unset PATCH_LIST
 
 echo "Production run completed."

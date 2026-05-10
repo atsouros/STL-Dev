@@ -1,0 +1,130 @@
+/pscratch/sd/a/atsouros/STL/STL_main/__init__.py:9: UserWarning: In development mode: Please run 'pip install -e .' in the root directory of the STL repository to properly install the package, its dependencies and enable proper version tracking.
+  warnings.warn(
+/pscratch/sd/a/atsouros/STL/STL_main/__init__.py:9: UserWarning: In development mode: Please run 'pip install -e .' in the root directory of the STL repository to properly install the package, its dependencies and enable proper version tracking.
+  warnings.warn(
+/pscratch/sd/a/atsouros/STL/STL_main/__init__.py:9: UserWarning: In development mode: Please run 'pip install -e .' in the root directory of the STL repository to properly install the package, its dependencies and enable proper version tracking.
+  warnings.warn(
+/pscratch/sd/a/atsouros/STL/STL_main/__init__.py:9: UserWarning: In development mode: Please run 'pip install -e .' in the root directory of the STL repository to properly install the package, its dependencies and enable proper version tracking.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 655, in <module>
+    main()
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 645, in main
+    _run_patch(patch, rank=rank)
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 538, in _run_patch
+    loss = optimizer.step(closure)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/optimizer.py", line 517, in wrapper
+    out = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/lbfgs.py", line 330, in step
+    orig_loss = closure()
+                ^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 535, in closure
+    loss.backward()
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/_tensor.py", line 625, in backward
+    torch.autograd.backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/graph.py", line 841, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 19.78 GiB. GPU 0 has a total capacity of 79.25 GiB of which 13.25 GiB is free. Including non-PyTorch memory, this process has 65.99 GiB memory in use. Of the allocated memory 45.26 GiB is allocated by PyTorch, and 20.24 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 655, in <module>
+    main()
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 645, in main
+    _run_patch(patch, rank=rank)
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 538, in _run_patch
+    loss = optimizer.step(closure)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/optimizer.py", line 517, in wrapper
+    out = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/lbfgs.py", line 330, in step
+    orig_loss = closure()
+                ^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 535, in closure
+    loss.backward()
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/_tensor.py", line 625, in backward
+    torch.autograd.backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/graph.py", line 841, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 19.78 GiB. GPU 0 has a total capacity of 79.25 GiB of which 13.23 GiB is free. Including non-PyTorch memory, this process has 66.02 GiB memory in use. Of the allocated memory 45.28 GiB is allocated by PyTorch, and 20.24 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 655, in <module>
+    main()
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 645, in main
+    _run_patch(patch, rank=rank)
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 538, in _run_patch
+    loss = optimizer.step(closure)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/optimizer.py", line 517, in wrapper
+    out = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/lbfgs.py", line 330, in step
+    orig_loss = closure()
+                ^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 535, in closure
+    loss.backward()
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/_tensor.py", line 625, in backward
+    torch.autograd.backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/graph.py", line 841, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 19.78 GiB. GPU 0 has a total capacity of 79.25 GiB of which 13.22 GiB is free. Including non-PyTorch memory, this process has 66.02 GiB memory in use. Of the allocated memory 45.28 GiB is allocated by PyTorch, and 20.24 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 655, in <module>
+    main()
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 645, in main
+    _run_patch(patch, rank=rank)
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 538, in _run_patch
+    loss = optimizer.step(closure)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/optimizer.py", line 517, in wrapper
+    out = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/lbfgs.py", line 330, in step
+    orig_loss = closure()
+                ^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/compsep_planck.py", line 535, in closure
+    loss.backward()
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/_tensor.py", line 625, in backward
+    torch.autograd.backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/autograd/graph.py", line 841, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 19.78 GiB. GPU 0 has a total capacity of 79.25 GiB of which 13.45 GiB is free. Including non-PyTorch memory, this process has 65.79 GiB memory in use. Of the allocated memory 45.03 GiB is allocated by PyTorch, and 20.26 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+srun: error: nid008700: tasks 0-3: Exited with exit code 1
+srun: Terminating StepId=52653580.0

@@ -435,6 +435,94 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
         "with_noise_channels": False,
     }
 
+    # -------------------------------------------------------------------------
+    # Output setup
+    # -------------------------------------------------------------------------
+    out_dir_env = (os.environ.get("OUTDIR") or "").strip()
+    results_dir = Path(out_dir_env).expanduser() if out_dir_env else REPO_ROOT / "planck_results"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    run_config = _build_run_config(
+        root=root,
+        patch=patch,
+        map_size=map_size,
+        device=device,
+        backend=backend,
+        dtype_str=dtype_str,
+        wtype=wtype,
+        seed=seed,
+        n_batch=n_batch,
+        epochs=epochs,
+        epoch_steps=epoch_steps,
+        lbfgs_max_iter=lbfgs_max_iter,
+        pbc=pbc,
+        white_noise_initial=white_noise_initial,
+        start_without_noise_channels=start_without_noise_channels,
+        nuisance_version=nuisance_version,
+        st_reduced=st_reduced,
+        st_j=st_j,
+        st_l=st_l,
+        st_iso=st_iso,
+        st_angular_ft=st_angular_ft,
+        st_scale_ft=st_scale_ft,
+        st_harmonics_angle=st_harmonics_angle,
+        st_harmonics_scale=st_harmonics_scale,
+        st_dj=st_dj,
+        st_compute_ps=st_compute_ps,
+        st_has_fewer_convolutions=st_has_fewer_convolutions,
+    )
+    out_stem = _build_run_stem(run_config)
+    checkpoint_every = 10
+
+    def save_loss_curve(loss_values: list[float], loss_path: Path) -> None:
+        finite_loss = np.asarray(loss_values, dtype=float)
+        finite_loss = finite_loss[np.isfinite(finite_loss)]
+        fig, ax = plt.subplots(1, 1, figsize=(10, 4))
+        if finite_loss.size:
+            ax.plot(finite_loss, linewidth=1)
+        else:
+            ax.plot([0.0], linewidth=1)
+        if finite_loss.size and np.any(finite_loss > 0):
+            ax.set_yscale("log")
+        ax.set_xlabel("LBFGS closure call index")
+        ax.set_ylabel("Loss")
+        ax.set_title("Loss vs time (closure calls)")
+        ax.grid(True, alpha=0.3)
+        try:
+            fig.tight_layout()
+            fig.savefig(loss_path, dpi=200)
+        except Exception as exc:
+            print(f"Warning: could not save loss curve for patch {patch}: {exc}")
+        plt.close(fig)
+
+    def save_checkpoint(global_step: int) -> None:
+        recovered = running_signal_qu.detach().cpu().numpy()
+        checkpoint_stem = f"{out_stem}_checkpoint"
+        checkpoint_path = results_dir / f"{checkpoint_stem}.npy"
+        checkpoint_metadata_path = results_dir / f"{checkpoint_stem}.json"
+        checkpoint_loss_path = results_dir / f"{checkpoint_stem}_loss_curve_planck.png"
+        np.save(checkpoint_path, recovered)
+        checkpoint_metadata = {
+            "run_stem": checkpoint_stem,
+            "final_file": checkpoint_path.name,
+            "stage1_file": None,
+            "stage2_file": None,
+            "loss_curve_file": checkpoint_loss_path.name,
+            "checkpoint_every": checkpoint_every,
+            "checkpoint_step": global_step,
+            "defaults": _build_default_config(),
+            "identity_config": _build_identity_config(run_config),
+            "config": run_config,
+        }
+        checkpoint_metadata_path.write_text(
+            json.dumps(checkpoint_metadata, indent=2, sort_keys=True) + "\n",
+            encoding="ascii",
+        )
+        save_loss_curve(loss_calls, checkpoint_loss_path)
+        print("Checkpoint saved:", checkpoint_path)
+        print("Checkpoint saved:", checkpoint_metadata_path)
+        print("Checkpoint saved:", checkpoint_loss_path)
+
     def make_running_signal_qu() -> torch.Tensor:
         if white_noise_initial:
             running_signal_qu_local = torch.stack(
@@ -541,6 +629,9 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
             print(
                 f"Epoch {epoch_idx+1}/{epochs} | step {step_idx+1}/{epoch_steps} | phase {phase} | minibatch {nb} | loss: {loss_value:.6g}"
             )
+            global_step = epoch_idx * epoch_steps + step_idx + 1
+            if global_step % checkpoint_every == 0:
+                save_checkpoint(global_step)
 
     recovered_q = running_signal_qu.detach().cpu().numpy()[0]
     recovered_u = running_signal_qu.detach().cpu().numpy()[1]
@@ -548,40 +639,6 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
     # -------------------------------------------------------------------------
     # Save outputs
     # -------------------------------------------------------------------------
-    out_dir_env = (os.environ.get("OUTDIR") or "").strip()
-    results_dir = Path(out_dir_env).expanduser() if out_dir_env else REPO_ROOT / "planck_results"
-    results_dir.mkdir(parents=True, exist_ok=True)
-
-    run_config = _build_run_config(
-        root=root,
-        patch=patch,
-        map_size=map_size,
-        device=device,
-        backend=backend,
-        dtype_str=dtype_str,
-        wtype=wtype,
-        seed=seed,
-        n_batch=n_batch,
-        epochs=epochs,
-        epoch_steps=epoch_steps,
-        lbfgs_max_iter=lbfgs_max_iter,
-        pbc=pbc,
-        white_noise_initial=white_noise_initial,
-        start_without_noise_channels=start_without_noise_channels,
-        nuisance_version=nuisance_version,
-        st_reduced=st_reduced,
-        st_j=st_j,
-        st_l=st_l,
-        st_iso=st_iso,
-        st_angular_ft=st_angular_ft,
-        st_scale_ft=st_scale_ft,
-        st_harmonics_angle=st_harmonics_angle,
-        st_harmonics_scale=st_harmonics_scale,
-        st_dj=st_dj,
-        st_compute_ps=st_compute_ps,
-        st_has_fewer_convolutions=st_has_fewer_convolutions,
-    )
-    out_stem = _build_run_stem(run_config)
     out_path = results_dir / f"{out_stem}.npy"
     np.save(out_path, np.stack([recovered_q, recovered_u], axis=0))
 
@@ -592,32 +649,15 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
         "stage1_file": None,
         "stage2_file": None,
         "loss_curve_file": f"{out_stem}_loss_curve_planck.png",
+        "checkpoint_every": checkpoint_every,
         "defaults": _build_default_config(),
         "identity_config": _build_identity_config(run_config),
         "config": run_config,
     }
     metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="ascii")
 
-    finite_loss = np.asarray(loss_calls, dtype=float)
-    finite_loss = finite_loss[np.isfinite(finite_loss)]
-    fig, ax = plt.subplots(1, 1, figsize=(10, 4))
-    if finite_loss.size:
-        ax.plot(finite_loss, linewidth=1)
-    else:
-        ax.plot([0.0], linewidth=1)
-    if finite_loss.size and np.any(finite_loss > 0):
-        ax.set_yscale("log")
-    ax.set_xlabel("LBFGS closure call index")
-    ax.set_ylabel("Loss")
-    ax.set_title("Loss vs time (closure calls)")
-    ax.grid(True, alpha=0.3)
     loss_path = results_dir / f"{out_stem}_loss_curve_planck.png"
-    try:
-        fig.tight_layout()
-        fig.savefig(loss_path, dpi=200)
-    except Exception as exc:
-        print(f"Warning: could not save loss curve for patch {patch}: {exc}")
-    plt.close(fig)
+    save_loss_curve(loss_calls, loss_path)
 
     print("Saved:", out_path)
     print("Saved:", metadata_path)

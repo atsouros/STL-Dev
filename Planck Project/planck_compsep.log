@@ -1,0 +1,1255 @@
+Launching production run: patches 0-192 on 4 GPUs
+Submit dir: /pscratch/sd/a/atsouros/STL
+Output dir: /pscratch/sd/a/atsouros/STL/planck_results/version_2
+Python script: /pscratch/sd/a/atsouros/STL/compsep_planck.py
+Patch count: 193 | MPI ranks: 4
+Patch range/list starts with: ['0', '1', '2', '3', '4', '5', '6', '7']
+Rank 2 | patch 2 | using device: cuda:0 (backend=fft)
+Rank 0 | patch 0 | using device: cuda:0 (backend=fft)
+Rank 1 | patch 1 | using device: cuda:0 (backend=fft)
+Rank 3 | patch 3 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_0_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_44.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+U353: patch_0_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_44.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+I857: patch_0_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_44.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+Q353: patch_2_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+U353: patch_2_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+I857: patch_2_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+Q353: patch_1_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_134.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+U353: patch_1_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_134.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+I857: patch_1_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_134.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+Q353: patch_3_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_314.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+U353: patch_3_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_314.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+I857: patch_3_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_314.912109375_lat_78.28414760510762_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_0_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_44.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_0_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_44.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_2_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_2_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_3_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_314.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_3_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_314.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_1_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_134.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_1_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_134.912109375_lat_78.28414760510762_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+ST coefficient count for phase 'with_noise_channels': 43706
+ST coefficient count for phase 'with_noise_channels': 43706
+ST coefficient count for phase 'with_noise_channels': 43706
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 219.772
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 236.3
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 203.003
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 205.214
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 205.059
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 200.632
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 229.842
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 220.502
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 2.90831e+10
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 1.737e+11
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 1.57245e+11
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 7.38631e+09
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 206.788
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 202.335
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 233.772
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 219.748
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 203.056
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 198.845
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 232.515
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 221.366
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 205.645
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 199.569
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 229.017
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 220.772
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 202.64
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 93.5024
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 198.058
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 219.473
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 1677.19
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 170.873
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 84.6862
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 3807.81
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 181.878
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 2273.37
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 74.88
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 184.089
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 162.459
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 151.485
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 168.018
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 60.2625
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 2.54273e+06
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 137.868
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 19189.8
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 47.0399
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 163.561
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 2212.48
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 29.2102
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 162.097
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 162.844
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 124.561
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 18.0494
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 154.052
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 75000.2
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 113.294
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 11.6435
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 2.5747e+06
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 162.931
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 2990.49
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 7.67563
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 150.362
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 158.194
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 102.176
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 4.88702
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 145.595
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 118.511
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 97.2692
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 3.3843
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 146.359
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 83.9032
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 232.166
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 2.51677
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 140.962
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 60.7058
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 80.0784
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 2.10264
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 541.685
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 133.415
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 73.2997
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 1.82312
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 126.868
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 50.004
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 64.2291
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 1.45083
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 115.395
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 48.2125
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 53.0274
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 1.47431
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 863.469
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 43.065
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 37.2983
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 1.63294
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 103.944
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 37.8952
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 18.6269
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 1.11853
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 96.8277
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 23.9296
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 12.7903
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 1.07259
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 302.576
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 17.5653
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 9.12949
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 0.992715
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 80.7647
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 9.66085
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 7.3343
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 0.929307
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 72.4563
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 8.19643
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 4.14237
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 0.887268
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 61.8958
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 7.10416
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 3.54565
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 0.881936
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 55.7975
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 6.77103
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 2.83863
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 0.834529
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 42.0948
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 4.83478
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 2.41233
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 0.828237
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 24.9919
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 3.22268
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 2.07496
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 0.796922
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 15.9856
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 2.75372
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 1.80692
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 0.72602
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 11.7954
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 2.49581
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 1.58775
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 0.714062
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 20.1283
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 2.24703
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 1.50102
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 0.716488
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 7.36483
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.89914
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.64836
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 0.910905
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 6.44041
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.48373
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.32585
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 0.712335
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 8.09955
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.42168
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.27706
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 0.750347
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 3.7039
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.29608
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.29348
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 0.836599
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 3.19802
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.21242
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.071
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 0.679264
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 2.42457
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.09319
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.27765
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 0.745921
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 2.17536
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 1.04684
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 1.12846
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 0.635745
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 2.26491
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.00546
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.06498
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 0.669981
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.71653
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.11898
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.02786
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 0.602537
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.76314
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 0.912323
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 1.02158
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 0.976611
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 2.0541
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 0.981228
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 0.986672
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 0.654145
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.44823
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 0.990657
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.04619
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 0.651757
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.43665
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.09258
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.22479
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 0.866461
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.3801
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 0.898729
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 0.90207
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 0.566616
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 1.28064
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.882607
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 1.06641
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.599447
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 1.54694
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 2.17768
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 1.00072
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 0.576242
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 1.91256
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.856679
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.938978
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.609907
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 1.24137
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.7708
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 1.08723
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.849633
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 1.33064
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.837058
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.911183
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.557489
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 1.06529
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.781797
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.934663
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.5185
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 1.13401
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.772101
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.955085
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.633286
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 1.06978
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.912823
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 339.873
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.556231
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.896624
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.748498
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.96252
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.528051
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 1.05795
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.696104
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.869335
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.527681
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 1.16687
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.729517
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.893719
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.616701
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 1.02753
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.804654
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 1.00212
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.707619
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 1.03725
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.842733
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.994144
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.612135
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.867321
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.752721
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.923474
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.659839
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.951679
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.812904
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.901782
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 1.08247
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.565234
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.791628
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.936066
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 1.10708
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.527605
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.859064
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.899417
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 1.09455
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.577771
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.635189
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.866835
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 1.03003
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 1.31586
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.605485
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.951939
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.845135
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.496763
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.739918
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.984806
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 1.20969
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.541126
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.603742
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 1.01661
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.836132
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.533659
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.626295
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.927971
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.851873
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.497416
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.665799
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.800678
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 1.01217
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.536711
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 423.983
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 0.821322
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 1.0527
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 0.55498
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.695503
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.879541
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.834772
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 1.15801
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.647071
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 1.08446
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.959253
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.510637
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.555182
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.894889
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.94825
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.526348
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.624185
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.985468
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.913398
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.517904
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.701552
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.828895
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 1.12245
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 1.29409
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.835296
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.708481
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.947955
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.518778
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.582148
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.847013
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.79826
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.559705
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.578246
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.827359
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.800489
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.509777
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 0.66895
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 0.807391
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 1.31335
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 0.695321
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 1.04013
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.855708
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.86349
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.530812
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.564504
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.841059
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.828235
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.494119
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.58381
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.81195
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.910174
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.500969
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.571037
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.844409
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.80785
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.671795
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.584929
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.832978
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.859718
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.511943
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.550314
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.831824
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.814396
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.508463
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 0.573683
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 0.799995
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 1.06127
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 0.527127
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 0.601752
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 1.13374
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 0.777649
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 0.497439
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 0.66249
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 0.722018
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 1.0141
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 0.453037
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.590516
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.829797
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.870744
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.484082
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.581294
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.709006
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.777221
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.466142
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.562156
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.848147
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.881112
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.548014
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.586671
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.694144
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.905693
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.441539
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.535605
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.733014
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.909739
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.469817
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.504103
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.876397
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.862643
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.534645
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.587198
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 1.63893
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.81348
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.479512
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.554507
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.790888
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.871348
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.554239
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 0.60164
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p2_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_eff1a5818b.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p2_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_eff1a5818b.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p2_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_eff1a5818b_loss_curve_planck.png
+Rank 2 | patch 6 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_6_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_112.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+U353: patch_6_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_112.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+I857: patch_6_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_112.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_6_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_112.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_6_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_112.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 0.783358
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 3.67954
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p1_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_45d0a2a905.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p1_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_45d0a2a905.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p1_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_45d0a2a905_loss_curve_planck.png
+Rank 1 | patch 5 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_5_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_67.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+U353: patch_5_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_67.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+I857: patch_5_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_67.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 0.517675
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p0_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_8c293144bb.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p0_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_8c293144bb.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p0_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_8c293144bb_loss_curve_planck.png
+Rank 0 | patch 4 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_4_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_22.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+U353: patch_4_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_22.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+I857: patch_4_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_22.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_5_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_67.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_5_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_67.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p3_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_234447a832.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p3_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_234447a832.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p3_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_234447a832_loss_curve_planck.png
+Rank 3 | patch 7 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_7_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_157.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+U353: patch_7_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_157.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+I857: patch_7_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_157.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_4_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_22.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_4_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_22.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_7_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_157.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_7_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_157.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+ST coefficient count for phase 'with_noise_channels': 43706
+ST coefficient count for phase 'with_noise_channels': 43706
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 215.09
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 248.9
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 213.551
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 221.306
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 213.273
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 242.987
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 215.192
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 220.249
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 4.12529e+11
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 1.6057e+12
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 2.30916e+10
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 1.77808e+11
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 212.866
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 244.865
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 211.771
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 220.724
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 214.345
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 241.59
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 215.636
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 219.088
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 212.356
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 241.078
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 213.63
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 215.892
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 214.163
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 243.245
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 211.66
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 165.352
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 110.693
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 237.626
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 113.652
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 5599.48
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 92.2451
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 154.566
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 190.32
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 150.085
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 75.7591
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 2382.74
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 93.572
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 137.449
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 57.8384
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 145.577
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 86.2286
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 2374.17
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 33.42
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 138.71
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 78.1694
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 124.551
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 24.7717
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 127.571
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 62.5459
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 114.954
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 13.8385
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 111.739
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 52.0195
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 1197.29
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 8.72134
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 100.789
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 34.6663
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 102.032
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 7.14319
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 75.9167
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 23.7503
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 94.2413
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 5.11752
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 51.7634
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 17.2256
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 117.385
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 3.51577
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 42.2688
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 10.9388
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 71.145
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 2.95867
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 30.6151
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 90.4308
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 64.8948
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 2.37621
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 21.3995
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 7.30484
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 54.6634
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 1.91119
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 15.6071
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 6.44169
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 43.3598
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 1.77663
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 14.6331
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 5.13567
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 22.4343
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 1.58631
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 11.873
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 4.00207
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 12.1585
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 1.57157
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 9.02803
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 3.21871
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 8.60305
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 1.46714
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 7.20328
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 2.90823
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 5.70085
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 1.44391
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 5.93814
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 2.48384
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 3.53367
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 1.28868
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 4.56289
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 2.7913
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 2.7846
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 1.22773
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 3.75049
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 2.82633
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 2.51124
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 1.14843
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 3.20075
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 1.95019
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 2.06975
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 1.10648
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 2.86677
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 1.9092
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 2.05486
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 1.05913
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 2.65255
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 1.65851
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 1.7607
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 0.967636
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 2.51284
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 1.60069
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 1.63969
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 1.05743
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 2.5736
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 1.52414
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 1.66478
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 1.03535
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 1.50623
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 2.21766
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 2.17133
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 0.880788
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 1.43845
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 2.08008
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 1.43221
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 0.89562
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.43163
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 2.02259
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.3655
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 0.997574
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.27301
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.90777
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.45717
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 0.96517
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.30384
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.81059
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.22923
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 0.865564
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.23293
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.5199
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.20781
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 0.962137
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.1601
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.59424
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.1591
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 0.967894
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.11666
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.83525
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.05013
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 0.881963
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 0.981356
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 1.46506
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 1.07244
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 0.87876
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.02749
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.54236
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.22051
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 0.75284
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 0.9914
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.63802
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.11127
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 0.780114
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 1.25346
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 1.65331
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 1.18372
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 0.906315
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.0354
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.85449
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.07811
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 0.83353
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.00074
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.65443
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.03257
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 0.813242
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 0.945302
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.61002
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.03038
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 0.88195
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 0.927639
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 1.32125
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 1.58117
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.826662
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.963069
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 1.26597
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.937625
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 0.796244
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 0.837212
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 1.31078
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 1.07269
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.864691
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.901757
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 1.30584
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.892518
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.820607
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.840422
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 1.47417
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.964572
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.799161
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.788957
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 1.28758
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 1.25808
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.938025
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.807064
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 1.20666
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.901984
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.758622
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.745443
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 1.31864
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.859902
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.813524
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.800176
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 1.48921
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.892867
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.837855
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.897675
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 1.18222
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.820874
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.802291
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.89655
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 1.26198
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.936387
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.751453
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 1.03814
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 1.21065
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.844399
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.859497
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.910856
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 1.0609
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.840751
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 1.35623
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.735917
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 1.24785
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.870186
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.914667
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.738722
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 1.34031
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.798542
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.861543
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.717341
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 1.17207
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.805345
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.822342
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.888327
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 1.20075
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 3.54544
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.797621
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.751602
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 1.28966
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.7962
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.741753
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.746007
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.996663
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.794677
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.750732
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.731202
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 1.04638
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.827105
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.86674
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.781443
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.958637
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.953965
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.825423
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.711152
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 1.03923
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 3.16696
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.785853
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.832991
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 1.10427
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.780654
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.811778
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.745651
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 1.26881
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.761441
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 0.688201
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 0.814935
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 1.20832
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 2.16999
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.796973
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.898953
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 1.28761
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.883812
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.861729
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.749115
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 1.17202
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.730229
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.760688
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.913533
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.848064
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.921196
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.72816
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.776706
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.748001
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.711817
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.751708
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.769496
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.650324
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.845813
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 1.23893
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.769439
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.899579
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 0.821752
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.891106
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.783276
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.72012
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.70905
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.744199
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.775669
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 0.795929
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 1.4426
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 0.744005
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.752205
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.82181
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.777925
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.837147
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.684214
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.7241
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.836886
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.951914
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 0.720351
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p7_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_3d31729aa1.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p7_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_3d31729aa1.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p7_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_3d31729aa1_loss_curve_planck.png
+Rank 3 | patch 11 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_11_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_337.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+U353: patch_11_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_337.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+I857: patch_11_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_337.4560546875_lat_66.44353569089877_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_11_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_337.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_11_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_337.4560546875_lat_66.44353569089877_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 214.713
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 215.562
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 6.59563e+09
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 215.982
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 216.927
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 206.166
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 1458.16
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 171.154
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 148.159
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 17927.9
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 141.424
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 132.077
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 4886.67
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 119.025
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 103.513
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 235.517
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 63.7123
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 47.8109
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 47.2918
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 31.1818
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 28.4233
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 21.5374
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 12.4203
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 8.27094
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 5.15999
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 3.87883
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 3.04463
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 2.30758
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 2.02408
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 1.85536
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 2.36353
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 1.52589
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 1.45971
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 1.38907
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 1.42767
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.31801
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.27285
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.54555
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.15871
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.14915
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 0.983161
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 0.967518
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.27789
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 0.876036
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 0.95377
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.10067
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 0.931228
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 0.905809
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 1.16875
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.914808
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 0.82809
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.784947
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.851146
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.902924
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.772846
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 0.70599
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.754714
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.688978
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.69413
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.677262
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.756744
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.835945
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 0.66123
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.80809
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.7044
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.666874
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.658037
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.674696
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.721682
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.715047
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.7617
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.869892
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 0.835199
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.622184
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.628064
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.645433
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.629842
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.690607
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.632801
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.606697
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.568156
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 0.588894
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.611098
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.631694
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.623675
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.581326
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.591211
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.578226
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 0.613458
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 0.769442
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 0.734544
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.607402
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.574642
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.579176
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.575603
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.659495
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.587427
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.665293
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.671334
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 0.645977
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p11_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_32651e00c7.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p11_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_32651e00c7.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p11_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_32651e00c7_loss_curve_planck.png
+Rank 3 | patch 15 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_15_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_104.970703125_lat_54.340912303861245_v4_10_arcmin.npy
+U353: patch_15_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_104.970703125_lat_54.340912303861245_v4_10_arcmin.npy
+I857: patch_15_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_104.970703125_lat_54.340912303861245_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_15_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_104.970703125_lat_54.340912303861245_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_15_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_104.970703125_lat_54.340912303861245_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 220.396
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 222.401
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 8.16603e+12
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 223.212
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 219.525
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 221.884
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 222.23
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 220.238
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 145.237
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 124.561
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 108.577
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 106.771
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 88.4686
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 81.6791
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 73.071
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 30.0198
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 20.2045
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 16.4963
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 19.9616
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 9.54954
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 7.93582
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 8.5716
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 4.54419
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 4.23004
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 3.9539
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 3.75892
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 3.03796
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 3.09094
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 2.44502
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 2.45091
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 2.63192
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 2.25784
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 1.95592
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 1.96096
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 1.62239
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.58408
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.61353
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.59193
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.48114
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.57509
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.43431
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 1.51211
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.51951
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.29384
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 1.37516
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.3219
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.40508
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.2482
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 1.1961
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 1.28615
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 1.13803
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 1.12548
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 1.17777
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 1.04173
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 1.25147
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 1.35011
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 1.20577
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 2.65181
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.940949
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.952034
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.987668
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 1.1538
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 1.19312
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.997247
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 1.02946
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 1.11188
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.85137
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 1.05631
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 0.844423
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 1.20045
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 1.18005
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 1.07455
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 1.04202
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.983382
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 1.05942
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 1.10698
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 1.04752
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 1.18819
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 1.06906
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.951838
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.994597
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 1.04228
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.980284
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 2.36581
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 1.02415
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 1.01555
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.966031
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 1.03749
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 1.07124
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 0.984034
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 1.1184
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 2.73229
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 1.04109
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.953692
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.925516
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 1.00469
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.972526
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.923787
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.953763
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 1.0293
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p15_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_5dbab7ba57.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p15_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_5dbab7ba57.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p15_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_5dbab7ba57_loss_curve_planck.png
+Rank 3 | patch 19 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_19_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.970703125_lat_54.340912303861245_v4_10_arcmin.npy
+U353: patch_19_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.970703125_lat_54.340912303861245_v4_10_arcmin.npy
+I857: patch_19_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.970703125_lat_54.340912303861245_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_19_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.970703125_lat_54.340912303861245_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_19_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_224.970703125_lat_54.340912303861245_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 213.075
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 218.144
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 6.37007e+10
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 216.967
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 216.502
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 207.091
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 551327
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 207.36
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 209.042
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 205.872
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 126.348
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 10424.4
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 117.358
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 111.552
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 92.942
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 79.3806
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 72.6809
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 61.9753
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 50.15
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 36.2377
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 22.5353
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 15.4812
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 10.7526
+Epoch 1/1 | step 24/100 | phase with_noise_channels | minibatch 15 | loss: 8.33486
+Epoch 1/1 | step 25/100 | phase with_noise_channels | minibatch 15 | loss: 6.17955
+Epoch 1/1 | step 26/100 | phase with_noise_channels | minibatch 15 | loss: 5.66438
+Epoch 1/1 | step 27/100 | phase with_noise_channels | minibatch 15 | loss: 4.04713
+Epoch 1/1 | step 28/100 | phase with_noise_channels | minibatch 15 | loss: 3.5073
+Epoch 1/1 | step 29/100 | phase with_noise_channels | minibatch 15 | loss: 3.23676
+Epoch 1/1 | step 30/100 | phase with_noise_channels | minibatch 15 | loss: 3.15902
+Epoch 1/1 | step 31/100 | phase with_noise_channels | minibatch 15 | loss: 2.25129
+Epoch 1/1 | step 32/100 | phase with_noise_channels | minibatch 15 | loss: 2.10987
+Epoch 1/1 | step 33/100 | phase with_noise_channels | minibatch 15 | loss: 2.16469
+Epoch 1/1 | step 34/100 | phase with_noise_channels | minibatch 15 | loss: 1.81007
+Epoch 1/1 | step 35/100 | phase with_noise_channels | minibatch 15 | loss: 1.7349
+Epoch 1/1 | step 36/100 | phase with_noise_channels | minibatch 15 | loss: 1.71962
+Epoch 1/1 | step 37/100 | phase with_noise_channels | minibatch 15 | loss: 1.47196
+Epoch 1/1 | step 38/100 | phase with_noise_channels | minibatch 15 | loss: 1.54765
+Epoch 1/1 | step 39/100 | phase with_noise_channels | minibatch 15 | loss: 1.47468
+Epoch 1/1 | step 40/100 | phase with_noise_channels | minibatch 15 | loss: 1.32159
+Epoch 1/1 | step 41/100 | phase with_noise_channels | minibatch 15 | loss: 1.34137
+Epoch 1/1 | step 42/100 | phase with_noise_channels | minibatch 15 | loss: 1.29747
+Epoch 1/1 | step 43/100 | phase with_noise_channels | minibatch 15 | loss: 1.24603
+Epoch 1/1 | step 44/100 | phase with_noise_channels | minibatch 15 | loss: 1.18597
+Epoch 1/1 | step 45/100 | phase with_noise_channels | minibatch 15 | loss: 1.07095
+Epoch 1/1 | step 46/100 | phase with_noise_channels | minibatch 15 | loss: 1.3002
+Epoch 1/1 | step 47/100 | phase with_noise_channels | minibatch 15 | loss: 1.04839
+Epoch 1/1 | step 48/100 | phase with_noise_channels | minibatch 15 | loss: 1.02586
+Epoch 1/1 | step 49/100 | phase with_noise_channels | minibatch 15 | loss: 0.973209
+Epoch 1/1 | step 50/100 | phase with_noise_channels | minibatch 15 | loss: 0.913464
+Epoch 1/1 | step 51/100 | phase with_noise_channels | minibatch 15 | loss: 0.882072
+Epoch 1/1 | step 52/100 | phase with_noise_channels | minibatch 15 | loss: 0.913768
+Epoch 1/1 | step 53/100 | phase with_noise_channels | minibatch 15 | loss: 0.909077
+Epoch 1/1 | step 54/100 | phase with_noise_channels | minibatch 15 | loss: 0.791839
+Epoch 1/1 | step 55/100 | phase with_noise_channels | minibatch 15 | loss: 0.944169
+Epoch 1/1 | step 56/100 | phase with_noise_channels | minibatch 15 | loss: 4634.94
+Epoch 1/1 | step 57/100 | phase with_noise_channels | minibatch 15 | loss: 0.748355
+Epoch 1/1 | step 58/100 | phase with_noise_channels | minibatch 15 | loss: 0.813807
+Epoch 1/1 | step 59/100 | phase with_noise_channels | minibatch 15 | loss: 0.815964
+Epoch 1/1 | step 60/100 | phase with_noise_channels | minibatch 15 | loss: 0.810063
+Epoch 1/1 | step 61/100 | phase with_noise_channels | minibatch 15 | loss: 0.81101
+Epoch 1/1 | step 62/100 | phase with_noise_channels | minibatch 15 | loss: 0.811868
+Epoch 1/1 | step 63/100 | phase with_noise_channels | minibatch 15 | loss: 1.15708
+Epoch 1/1 | step 64/100 | phase with_noise_channels | minibatch 15 | loss: 0.723261
+Epoch 1/1 | step 65/100 | phase with_noise_channels | minibatch 15 | loss: 0.702062
+Epoch 1/1 | step 66/100 | phase with_noise_channels | minibatch 15 | loss: 0.766349
+Epoch 1/1 | step 67/100 | phase with_noise_channels | minibatch 15 | loss: 0.713676
+Epoch 1/1 | step 68/100 | phase with_noise_channels | minibatch 15 | loss: 0.824373
+Epoch 1/1 | step 69/100 | phase with_noise_channels | minibatch 15 | loss: 18.7987
+Epoch 1/1 | step 70/100 | phase with_noise_channels | minibatch 15 | loss: 0.962894
+Epoch 1/1 | step 71/100 | phase with_noise_channels | minibatch 15 | loss: 0.690024
+Epoch 1/1 | step 72/100 | phase with_noise_channels | minibatch 15 | loss: 0.757267
+Epoch 1/1 | step 73/100 | phase with_noise_channels | minibatch 15 | loss: 0.824406
+Epoch 1/1 | step 74/100 | phase with_noise_channels | minibatch 15 | loss: 0.712626
+Epoch 1/1 | step 75/100 | phase with_noise_channels | minibatch 15 | loss: 0.9508
+Epoch 1/1 | step 76/100 | phase with_noise_channels | minibatch 15 | loss: 0.726159
+Epoch 1/1 | step 77/100 | phase with_noise_channels | minibatch 15 | loss: 0.729741
+Epoch 1/1 | step 78/100 | phase with_noise_channels | minibatch 15 | loss: 0.704172
+Epoch 1/1 | step 79/100 | phase with_noise_channels | minibatch 15 | loss: 0.795514
+Epoch 1/1 | step 80/100 | phase with_noise_channels | minibatch 15 | loss: 0.684836
+Epoch 1/1 | step 81/100 | phase with_noise_channels | minibatch 15 | loss: 0.673373
+Epoch 1/1 | step 82/100 | phase with_noise_channels | minibatch 15 | loss: 0.713353
+Epoch 1/1 | step 83/100 | phase with_noise_channels | minibatch 15 | loss: 0.763192
+Epoch 1/1 | step 84/100 | phase with_noise_channels | minibatch 15 | loss: 0.996251
+Epoch 1/1 | step 85/100 | phase with_noise_channels | minibatch 15 | loss: 0.664469
+Epoch 1/1 | step 86/100 | phase with_noise_channels | minibatch 15 | loss: 0.749266
+Epoch 1/1 | step 87/100 | phase with_noise_channels | minibatch 15 | loss: 0.681706
+Epoch 1/1 | step 88/100 | phase with_noise_channels | minibatch 15 | loss: 0.630094
+Epoch 1/1 | step 89/100 | phase with_noise_channels | minibatch 15 | loss: 0.79653
+Epoch 1/1 | step 90/100 | phase with_noise_channels | minibatch 15 | loss: 0.691301
+Epoch 1/1 | step 91/100 | phase with_noise_channels | minibatch 15 | loss: 0.6699
+Epoch 1/1 | step 92/100 | phase with_noise_channels | minibatch 15 | loss: 0.705942
+Epoch 1/1 | step 93/100 | phase with_noise_channels | minibatch 15 | loss: 0.647497
+Epoch 1/1 | step 94/100 | phase with_noise_channels | minibatch 15 | loss: 0.792997
+Epoch 1/1 | step 95/100 | phase with_noise_channels | minibatch 15 | loss: 0.710917
+Epoch 1/1 | step 96/100 | phase with_noise_channels | minibatch 15 | loss: 0.620035
+Epoch 1/1 | step 97/100 | phase with_noise_channels | minibatch 15 | loss: 0.689353
+Epoch 1/1 | step 98/100 | phase with_noise_channels | minibatch 15 | loss: 0.675604
+Epoch 1/1 | step 99/100 | phase with_noise_channels | minibatch 15 | loss: 0.590305
+Epoch 1/1 | step 100/100 | phase with_noise_channels | minibatch 15 | loss: 0.753655
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p19_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_178beeac9c.npy
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p19_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_178beeac9c.json
+Saved: /pscratch/sd/a/atsouros/STL/planck_results/version_2/p19_m384_fft_f64_s2_r0_i0_p0_n0_bumpsteerable_178beeac9c_loss_curve_planck.png
+Rank 3 | patch 23 | using device: cuda:0 (backend=fft)
+PBC: False
+Epochs: 1 | steps per epoch: 100
+Optimizer: lbfgs | one optimizer iteration per logged step
+Standard ST config: compute_PS=True | fewer_convolutions=False
+Q353: patch_23_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_344.97070312500006_lat_54.340912303861245_v4_10_arcmin.npy
+U353: patch_23_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_344.97070312500006_lat_54.340912303861245_v4_10_arcmin.npy
+I857: patch_23_I857_PR4_no_PS_map_zero_adjust_cen_pix_lon_344.97070312500006_lat_54.340912303861245_v4_10_arcmin.npy
+Nuisance version: v4_10_arcmin
+Paired nuisance samples: 100
+First key: (200, 0) -> patch_23_noise_Q353_PR4_no_PS_map_zero_adjust_cen_pix_lon_344.97070312500006_lat_54.340912303861245_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy | patch_23_noise_U353_PR4_no_PS_map_zero_adjust_cen_pix_lon_344.97070312500006_lat_54.340912303861245_noise_seed_0200_CMB_res_seed_00_v4_10_arcmin.npy
+Initialization per epoch: data maps
+Start without explicit noise channels: False
+ST coefficient count for phase 'with_noise_channels': 43706
+Epoch 1/1 | step 1/100 | phase with_noise_channels | minibatch 15 | loss: 200.429
+Epoch 1/1 | step 2/100 | phase with_noise_channels | minibatch 15 | loss: 200.723
+Epoch 1/1 | step 3/100 | phase with_noise_channels | minibatch 15 | loss: 9.41258e+08
+Epoch 1/1 | step 4/100 | phase with_noise_channels | minibatch 15 | loss: 202.293
+Epoch 1/1 | step 5/100 | phase with_noise_channels | minibatch 15 | loss: 201.035
+Epoch 1/1 | step 6/100 | phase with_noise_channels | minibatch 15 | loss: 189.002
+Epoch 1/1 | step 7/100 | phase with_noise_channels | minibatch 15 | loss: 4842.48
+Epoch 1/1 | step 8/100 | phase with_noise_channels | minibatch 15 | loss: 175.859
+Epoch 1/1 | step 9/100 | phase with_noise_channels | minibatch 15 | loss: 164.333
+Epoch 1/1 | step 10/100 | phase with_noise_channels | minibatch 15 | loss: 32863.8
+Epoch 1/1 | step 11/100 | phase with_noise_channels | minibatch 15 | loss: 156.665
+Epoch 1/1 | step 12/100 | phase with_noise_channels | minibatch 15 | loss: 150.448
+Epoch 1/1 | step 13/100 | phase with_noise_channels | minibatch 15 | loss: 5167.01
+Epoch 1/1 | step 14/100 | phase with_noise_channels | minibatch 15 | loss: 135.373
+Epoch 1/1 | step 15/100 | phase with_noise_channels | minibatch 15 | loss: 120.715
+Epoch 1/1 | step 16/100 | phase with_noise_channels | minibatch 15 | loss: 8903.67
+Epoch 1/1 | step 17/100 | phase with_noise_channels | minibatch 15 | loss: 106.546
+Epoch 1/1 | step 18/100 | phase with_noise_channels | minibatch 15 | loss: 93.7839
+Epoch 1/1 | step 19/100 | phase with_noise_channels | minibatch 15 | loss: 2863.24
+Epoch 1/1 | step 20/100 | phase with_noise_channels | minibatch 15 | loss: 76.5045
+Epoch 1/1 | step 21/100 | phase with_noise_channels | minibatch 15 | loss: 65.8185
+Epoch 1/1 | step 22/100 | phase with_noise_channels | minibatch 15 | loss: 900.557
+Epoch 1/1 | step 23/100 | phase with_noise_channels | minibatch 15 | loss: 46.3503
