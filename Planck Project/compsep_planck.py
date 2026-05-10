@@ -523,6 +523,18 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
         print("Checkpoint saved:", checkpoint_metadata_path)
         print("Checkpoint saved:", checkpoint_loss_path)
 
+    def remove_checkpoint() -> None:
+        checkpoint_stem = f"{out_stem}_checkpoint"
+        for path in (
+            results_dir / f"{checkpoint_stem}.npy",
+            results_dir / f"{checkpoint_stem}.json",
+            results_dir / f"{checkpoint_stem}_loss_curve_planck.png",
+        ):
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+
     def make_running_signal_qu() -> torch.Tensor:
         if white_noise_initial:
             running_signal_qu_local = torch.stack(
@@ -658,6 +670,7 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
 
     loss_path = results_dir / f"{out_stem}_loss_curve_planck.png"
     save_loss_curve(loss_calls, loss_path)
+    remove_checkpoint()
 
     print("Saved:", out_path)
     print("Saved:", metadata_path)
