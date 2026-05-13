@@ -1,0 +1,27 @@
+# Generated result outputs
+XRAY_results_old/
+results/
+
+# Large data products
+x-ray data/
+*.npy
+*.npz
+*.fits
+
+# Plots and figures generated during experiments
+*.png
+*.pdf
+
+# Logs / scheduler output
+*.log
+*.err
+*.out
+*.slurm
+
+# Python / notebook cache files
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# macOS metadata
+.DS_Store
