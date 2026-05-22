@@ -1,0 +1,9 @@
+- Start thinking about the moment network implementation. 
+    Start from one network for all of the patches. If not, go to two networks, one for high and one for low Gal latitudes. 
+
+- Idea: Perhaps do the compsep on one patch at high Galactic latitude, and then use that to do the synthesis for the rest of the patches. This is crude, but may be a quick way to produce multiple realisations. 
+
+- Try to play with wavelet width in the PS computation, this might help with the bumps.
+    it seems that the default choice is the sweet spot. 
+
+- 

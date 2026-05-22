@@ -176,6 +176,8 @@ def _build_run_config(
     st_harmonics_scale: int,
     st_dj: int,
     st_compute_ps: bool,
+    st_ps_method: str,
+    st_ps_n_bins: int | None,
     st_has_fewer_convolutions: bool,
 ) -> dict[str, object]:
     return {
@@ -205,6 +207,8 @@ def _build_run_config(
         "st_harmonics_scale": st_harmonics_scale,
         "st_dj": st_dj,
         "st_compute_ps": st_compute_ps,
+        "st_ps_method": st_ps_method,
+        "st_ps_n_bins": st_ps_n_bins,
         "st_has_fewer_convolutions": st_has_fewer_convolutions,
     }
 
@@ -235,6 +239,8 @@ def _build_default_config() -> dict[str, object]:
         "st_harmonics_scale": 3,
         "st_dj": 3,
         "st_compute_ps": False,
+        "st_ps_method": "legacy",
+        "st_ps_n_bins": None,
         "st_has_fewer_convolutions": False,
     }
 
@@ -265,6 +271,8 @@ def _build_identity_config(config: dict[str, object]) -> dict[str, object]:
         "st_harmonics_scale",
         "st_dj",
         "st_compute_ps",
+        "st_ps_method",
+        "st_ps_n_bins",
         "st_has_fewer_convolutions",
     )
     return {key: config[key] for key in identity_keys}

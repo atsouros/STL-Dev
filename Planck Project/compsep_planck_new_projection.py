@@ -16,6 +16,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
+DEFAULT_NEW_PROJECTION_PATH = Path(
+    "/pscratch/sd/s/shamikg/polarized_dust_STGNILC/output/"
+    "NPIPE_PR4_QU_tiles_tilenside256_margin64_hpxnside1024.npy"
+)
+
 # Repo root (for imports)
 REPO_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(REPO_ROOT))
@@ -38,6 +43,27 @@ from utils import (
     _parse_patch_list,
     _select_no_bonus_signal_path,
 )
+
+
+def _load_new_projection_qu(path: Path, patch: str) -> tuple[np.ndarray, np.ndarray]:
+    try:
+        patch_index = int(patch)
+    except ValueError as exc:
+        raise ValueError(f"Patch must be an integer tile index for {path}: {patch!r}") from exc
+
+    patches = np.load(path, mmap_mode="r")
+    if patches.ndim != 4 or patches.shape[1] != 2:
+        raise RuntimeError(
+            f"Expected new-projection patches to have shape (N, 2, H, W), got {patches.shape}."
+        )
+    if patch_index < 0 or patch_index >= patches.shape[0]:
+        raise IndexError(
+            f"Patch index {patch_index} is outside available range 0-{patches.shape[0] - 1} "
+            f"for {path}."
+        )
+
+    qu = np.asarray(patches[patch_index], dtype=np.float64)
+    return qu[0], qu[1]
 
 
 def _build_default_config() -> dict[str, object]:
@@ -75,6 +101,9 @@ def _build_default_config() -> dict[str, object]:
 def _run_patch(patch: str, *, rank: int = 0) -> None:
     signal_dir = Path(os.environ.get("PLANCK_SIGNAL_DIR", str(SIGNAL_DIR))).expanduser()
     nuisance_dir = Path(os.environ.get("PLANCK_NUISANCE_DIR", str(NUISANCE_DIR))).expanduser()
+    new_projection_path = Path(
+        os.environ.get("PLANCK_NEW_PROJECTION_PATH", str(DEFAULT_NEW_PROJECTION_PATH))
+    ).expanduser()
     root = signal_dir.parent
 
     # -------------------------------------------------------------------------
@@ -220,15 +249,11 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
     # Load NERSC Planck patch inputs
     # -------------------------------------------------------------------------
     freq = int(os.environ.get("FREQ", "353"))
-    q353_path = _select_no_bonus_signal_path(signal_dir, f"patch_{patch}_Q{freq}_*.npy", f"Q{freq}")
-    u353_path = _select_no_bonus_signal_path(signal_dir, f"patch_{patch}_U{freq}_*.npy", f"U{freq}")
     i857_path = _select_no_bonus_signal_path(signal_dir, f"patch_{patch}_I857_*.npy", "I857")
-    print(f"Q{freq}:", q353_path.name)
-    print(f"U{freq}:", u353_path.name)
+    print("New-projection Q/U:", new_projection_path)
     print("I857:", i857_path.name)
 
-    d_q = _downsample_by_four(np.load(q353_path).astype(np.float64))
-    d_u = _downsample_by_four(np.load(u353_path).astype(np.float64))
+    d_q, d_u = _load_new_projection_qu(new_projection_path, patch)
     aux = _downsample_by_four(np.load(i857_path).astype(np.float64))
 
     if map_size is not None:
@@ -495,7 +520,8 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
         st_ps_n_bins=st_ps_n_bins,
         st_has_fewer_convolutions=st_has_fewer_convolutions,
     )
-    out_stem = _build_run_stem(run_config)
+    run_config["new_projection_path"] = str(new_projection_path)
+    out_stem = f"newproj_{_build_run_stem(run_config)}"
     checkpoint_every = 10
 
     def save_loss_curve(loss_values: list[float], loss_path: Path) -> None:

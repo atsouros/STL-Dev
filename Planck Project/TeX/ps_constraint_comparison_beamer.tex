@@ -1,0 +1,226 @@
+\documentclass[10pt]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{amsmath,amssymb}
+\usepackage{mathtools}
+
+\title[Power-Spectrum Constraints]{Two Implementations of Power-Spectrum Constraints}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Where the constraint enters}
+  \begin{itemize}
+    \item In \texttt{compsep\_planck.py}, \texttt{ST\_COMPUTE\_PS=1} sets
+    \[
+      \texttt{compute\_PS=True}
+    \]
+    when building the \texttt{ST\_Operator}.
+
+    \item The backend then appends a separate tensor \texttt{PS} to the flattened
+    statistics:
+    \[
+      \texttt{mean},\ \texttt{var},\ S_1,\ldots,S_4,\ \texttt{PS}.
+    \]
+
+    \item The target and running maps are compared by the same squared
+    Euclidean loss used for the other statistics.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Planck backend: channel pairs}
+  In the 5-channel phase,
+  \[
+    X = (d_Q,\ n_Q,\ d_U,\ n_U,\ d_I).
+  \]
+  The power-spectrum operator uses the same upper-triangular pair mask as the
+  scattering statistics:
+  \[
+  \begin{pmatrix}
+  1&0&1&0&1\\
+  0&1&0&0&0\\
+  0&0&1&0&1\\
+  0&0&0&1&0\\
+  0&0&0&0&1
+  \end{pmatrix}.
+  \]
+
+  \begin{itemize}
+    \item Auto-spectra are computed for every channel.
+    \item Cross-spectra are computed for
+    \[
+      (d_Q,d_U),\quad (d_Q,d_I),\quad (d_U,d_I).
+    \]
+    \item Signal-noise and noise-auxiliary cross-spectra are not included.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Planck backend: what is computed}
+  For each batch element, selected channel pair, and radial bin,
+  \[
+    P_{c_1c_2}(b)
+    =
+    \frac{
+      \sum_k M_b(k)\,\widehat X_{c_1}(k)
+      \overline{\widehat X_{c_2}(k)}
+    }{
+      \sum_k M_b(k)
+    }.
+  \]
+
+  \begin{itemize}
+    \item \(M_b(k)\) is a smooth radial Fourier-bin mask.
+    \item Output shape is
+    \[
+      N_{\rm batch}\times N_c\times N_c\times N_{\rm bins}.
+    \]
+    \item Only the selected upper-triangular entries are filled; the redundant
+    conjugate entries are left unused.
+    \item The result is normalized by reference auto-spectra:
+    \[
+      P_{c_1c_2}(b) \leftarrow
+      \frac{P_{c_1c_2}(b)}
+      {\sqrt{P^{\rm ref}_{c_1c_1}(b)}\sqrt{P^{\rm ref}_{c_2c_2}(b)}}.
+    \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Planck backend: non-periodic maps}
+  The note \texttt{pbc\_power\_spectrum\_note.pdf} describes the two backend
+  branches.
+
+  \begin{itemize}
+    \item If \texttt{PBC=True}, the estimate stays in Fourier space.
+
+    \item If \texttt{PBC=False}, the backend first inverse-transforms the
+    binned map,
+    \[
+      X^{(b)}_{c_1}(x)
+      =
+      \mathcal{F}^{-1}\!\left[M_b(k)\widehat X_{c_1}(k)\right](x),
+    \]
+    then averages
+    \[
+      X^{(b)}_{c_1}(x)\overline{X_{c_2}(x)}
+    \]
+    with a bin-dependent real-space taper/crop mask.
+
+    \item So the intended object is still a radial auto/cross power spectrum;
+    the non-periodic branch changes the estimator to reduce boundary artifacts.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{Scattering2d.py}: what is called power}
+  In \texttt{Scattering2d.py}, the main single-field power term is
+  \[
+    P_{00}(j,\ell)
+    =
+    \left\langle
+      |I\ast\psi_{j,\ell}|^2
+    \right\rangle_x .
+  \]
+
+  \begin{itemize}
+    \item This is wavelet-band energy, not a separately binned radial FFT
+    spectrum.
+    \item It is included directly in \texttt{for\_synthesis} as
+    \[
+      \log P_{00}(j,\ell).
+    \]
+    \item The isotropic vector uses
+    \[
+      P_{00}^{\rm iso}(j)=\frac{1}{L}\sum_\ell P_{00}(j,\ell).
+    \]
+    \item A newer extra term \texttt{P00g} also computes energy after filtering
+    by Gaussian concentric rings, and appends \(\log P_{00g}\) to the
+    non-isotropic synthesis vector.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{Scattering2d.py}: cross-field terms}
+  The two-field routine computes auto powers for each field:
+  \[
+    P_{00,a}(j,\ell),\qquad P_{00,b}(j,\ell).
+  \]
+
+  It also computes the normalized cross-band correlation
+  \[
+    {\rm Corr}_{00}(j,\ell)
+    =
+    \frac{
+      \left\langle
+        \widehat a(k)\overline{\widehat b(k)}
+        |\psi_{j,\ell}(k)|^2
+      \right\rangle_k
+    }{
+      \sqrt{P_{00,a}(j,\ell)P_{00,b}(j,\ell)}
+    }.
+  \]
+
+  \begin{itemize}
+    \item Therefore auto and cross information can both appear.
+    \item But this interface is pairwise: it takes two fields \(a,b\), not an
+    arbitrary \(N_c\times N_c\) channel-pair mask.
+    \item The flattened vector contains \(P_{00,a}\), \(P_{00,b}\), and real and
+    imaginary parts of \({\rm Corr}_{00}\).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Main difference}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \textbf{Current backend}
+      \begin{itemize}
+        \item Separate \texttt{PS} block.
+        \item Radial Fourier bins \(M_b(k)\).
+        \item Multi-channel auto/cross tensor.
+        \item Pair selection controlled by one channel-pair mask.
+        \item Non-periodic mode uses a real-space taper/crop estimator.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \textbf{\texttt{Scattering2d.py}}
+      \begin{itemize}
+        \item Power terms are embedded in scattering covariance vectors.
+        \item Main term is wavelet-band energy \(P_{00}\).
+        \item Optional \texttt{P00g} uses Gaussian rings.
+        \item Cross-field power appears as normalized pairwise correlation
+        \({\rm Corr}_{00}\).
+        \item No general multi-channel PS tensor.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Practical takeaway}
+  \begin{itemize}
+    \item The backend \texttt{st\_compute\_ps} constraint matches radial
+    auto/cross Fourier spectra directly.
+
+    \item The \texttt{Scattering2d.py} implementation constrains band energies
+    and band correlations attached to the wavelet scattering representation.
+
+    \item Both include auto-power information.
+
+    \item Cross-power differs most:
+    \begin{itemize}
+      \item backend: selected entries of a full channel-pair cross-spectrum
+      tensor;
+      \item \texttt{Scattering2d.py}: pairwise normalized cross-correlations
+      for two input fields.
+    \end{itemize}
+
+    \item The backend is closer to an explicit power-spectrum loss; the older
+    code is closer to adding power-like scattering covariance coordinates.
+  \end{itemize}
+\end{frame}
+
+\end{document}

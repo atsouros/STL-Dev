@@ -71,6 +71,10 @@ export ST_HARMONICS_ANGLE="2"
 export ST_HARMONICS_SCALE="3"
 export ST_DJ="3"
 export ST_COMPUTE_PS="True"
+# Power-spectrum estimator: "legacy" for the original backend, "gaussian_rings" for log-Gaussian bins.
+export ST_PS_METHOD="legacy"
+# Optional override. Leave unset to use the backend default; try 12 to halve the 384x384 default.
+# export ST_PS_N_BINS="12"
 export ST_FEWER_CONVOLUTIONS="False"
 
 export START_WITHOUT_NOISE_CHANNELS="False"
