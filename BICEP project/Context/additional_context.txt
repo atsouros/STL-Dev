@@ -1,0 +1,85 @@
+###########################PART 1, EMAIL EXCHANGE 
+
+Hi everyone,
+
+the answer from Clem. This seems to fits exactly what we had in mind!
+
+Let's discuss it Monday 6pm Paris.
+
+Have a nice week-end,
+Erwan
+
+-------- Message transféré --------
+Sujet : 	Re: Dust models for BK24 paper
+Date : 	Thu, 23 Apr 2026 18:48:51 -0500
+De : 	Clem Pryke <clem.pryke@gmail.com>
+Répondre à : 	pryke@symmetryone.net
+Pour : 	Erwan Allys <erwan.allys@phys.ens.fr>
+Copie à : 	pryke@symmetryone.net, François Boulanger <francois.boulanger@phys.ens.fr>, Clara Verges <cverges@lbl.gov>
+
+
+Hi Erwan,
+
+Thanks for this positive response.
+
+One to two months sounds good. Sending something preliminary as soon as possible would be good to get the process/interface worked out.
+
+For reference here are the slides Clara put together for the PySM call yesterday
+
+> These would not deterministically match the BICEP field, but would capture realistic
+> non-Gaussian foreground statistics.
+
+That actually sounds like what we would prefer - multiple statistical realizations which are not locked to "Planck truth" at low ell. Ideally we would like 500 realizations since that is our standard number. But fine to start with one or a handful.
+
+The ell range we care about is roughly 30<ell<500. Probably fine to drop the upper end to 300 if that were to make a difference to you. We would like nside=512 maps for input to our machinery. And I guess we will need maps at each bandpass where we would need to send those to you.
+
+It would be best if the dust (and sync?) amplitude roughly matches the real data constraints set in the BK18 paper  - in particular please check the decorrelation parameter on the sky mask which is available on our website (http://bicepkeck.org/bk18_2021_release.html) - the paper shows the data constraint in fig18.
+
+Best,
+
+Clem
+
+
+On Thu, Apr 23, 2026 at 2:14 PM Erwan Allys <erwan.allys@phys.ens.fr> wrote:
+
+    Hi Clem,
+
+    Thanks for reaching out, and sorry I wasn't able to make it yesterday. 
+
+    We would be very happy to contribute models to the BK24 release.
+
+    We don't have publicly available maps at the moment, but this fits naturally with ongoing work we are doing with Jacques Delabrouille, and we could produce something within one to two months. Whether this timeline matches your needs is the key question.
+
+    In terms of what we could provide: the most straightforward option would be a distribution of I/Q/U maps with representative statistical properties for the BICEP patch, constructed via Scattering Transform component separation on high-latitude Planck data and scaled to BICEP frequencies with 2–3 levels of SED complexity. These would not deterministically match the BICEP field, but would capture realistic non-Gaussian foreground statistics. Other options are possible and worth discussing.
+
+    A few things would help us get started on the right foot: your timeline, the ℓ-range you have in mind, and any specific requirements on the model format or complexity.
+
+    Happy to discuss this directly if it can help.
+
+    Sincerely,
+    Erwan
+
+    Le 21/04/2026 à 19:36, Clem Pryke a écrit :
+>     Hi Erwan,
+>
+>     We are getting close (I hope) to a next gen BK24 data release.
+>
+>     In the BK18  paper appendix E4 we investigated various different foreground models to see what bias on r they may produce.
+>
+>     Tomorrow there will be a discussion on the regular PySM call to discuss - not sure if you regularly join those - I do not. You are of course welcome to join.
+>
+>     But either way we would be interested in including a version of your model(s) in the BK24 release. Are there perhaps publicly posted maps we could download? If not would you be willing to share privately.
+>
+>     Best,
+>
+>     Clem
+
+###########################PART 2, ADDITIONAL MESSAGE 
+
+Salut Alexandros,
+Au sujet du projet BICEP, regarde bien les spécifications qu’il y a dans l’échange avec Clem Pryke que je vous ai transmis.
+Pour moi, on prends des patchs haute-latitude I/Q/U à 353GHz en polar, puis on en apprend un modèle dont on génère des réalisations sur le patch BICEP, qu’on met à l’amplitude attendue. Avoir un PS correct est important. Ensuite, il faut mettre en place une SED suffisamment complexe pour reproduire la décorrélation attendue. Pour cela, il faut voir avec les deux François et Sébastien.
+Les timelines sont un peu courtes, il serait bien qu’on avance rapidement sur ce sujet. En mon absence, je te propose de voir avec François Boulanger et François Levrier, ils connaissent super bien le sujet !
+Mais je pense qu’on peut avoir des résultats de façon assez straightforward.
+De mon point de vue, si tu leads ce projet, en plus du projet full-sky, cela te donnera une super visibilité, et c’est complètement dans le prolongement de ce que tu fais actuellement, et de ce que fait Sébastien.
+

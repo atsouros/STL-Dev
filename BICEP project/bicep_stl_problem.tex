@@ -1,0 +1,728 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{enumitem}
+
+\title{STL Dust Simulations for the BICEP/Keck Foreground Model Suite}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Scientific Context}
+
+The BICEP/Keck program constrains the tensor-to-scalar ratio $r$ from
+degree-scale CMB $B$-mode polarization.  At the sensitivity of BK18 and the
+upcoming BK24 analysis, the dominant astrophysical systematic is Galactic
+polarized foreground emission, especially dust.  The BICEP/Keck likelihood
+fits multi-frequency $BB$ spectra with a model containing lensed $\Lambda$CDM,
+tensor modes, dust, synchrotron, and noise.  In BK18, the baseline dust model
+was a power-law angular spectrum and a modified-blackbody spectral energy
+distribution (SED), with fitted dust amplitude
+\[
+  A_{d,353} \simeq 4.4\,\mu{\rm K}^2
+\]
+at $\ell=80$ and $353\,{\rm GHz}$ on the BICEP/Keck field.
+
+The requested deliverable is not a deterministic reconstruction of the true
+BICEP sky.  The requested deliverable is an ensemble of independent foreground
+realizations whose statistics are realistic for the BICEP field and consistent
+with the existing BICEP/Keck constraints.  These simulations will be passed
+through the BICEP/Keck analysis machinery to test whether foreground complexity
+not captured by the baseline parametric model can bias the recovered value of
+$r$.
+
+\section{Target Data Product}
+
+The target product is an ensemble of synthesized foreground maps
+\[
+  \left\{
+    \tilde{\bm s}_{\nu}^{\prime(a)}
+  \right\}_{a=1}^{N_{\rm sim}},
+  \qquad
+  \tilde{\bm s}_{\nu}^{\prime(a)}
+  =
+  \left(\tilde I_\nu^{\prime(a)},
+        \tilde Q_\nu^{\prime(a)},
+        \tilde U_\nu^{\prime(a)}\right),
+\]
+on the BICEP/Keck sky patch, at the observing bandpasses supplied by
+BICEP/Keck.  The desired ensemble size is
+\[
+  N_{\rm sim}\simeq 500,
+\]
+matching the standard BICEP/Keck simulation count.  The maps should be
+provided at
+\[
+  N_{\rm side}=512,
+\]
+and should have controlled angular statistics over the approximate range
+\[
+  30 \lesssim \ell \lesssim 500.
+\]
+If necessary for a first delivery, the upper end may be reduced to
+$\ell\simeq 300$, but the degree-scale range around $\ell\simeq 80$ is
+essential.
+
+The primary foreground component is polarized thermal dust.  Synchrotron may
+also be included if a corresponding amplitude/SED prescription is agreed upon,
+but the immediate problem is to generate dust realizations whose amplitude,
+power spectrum, non-Gaussian morphology, and frequency decorrelation are
+compatible with BICEP/Keck data.
+
+\section{Input Data and Hypotheses}
+
+Let $\Omega_{\rm HL}$ denote a collection of clean high-latitude sky patches
+outside the Galactic plane.  The reference data are cleaned Planck polarized
+dust maps at $353\,{\rm GHz}$,
+\[
+  \tilde{\bm s}_{353,p}
+  =
+  \left(\tilde Q_{353,p},\tilde U_{353,p}\right),
+  \qquad p\in\Omega_{\rm HL},
+\]
+possibly together with an intensity dust tracer such as
+\[
+  \tilde I_{857,p}
+\]
+or another high signal-to-noise dust morphology template.  These are not
+``training'' data in the machine-learning sense; they are the observed,
+cleaned Planck dust patches from which we measure the target statistics.
+
+The working hypotheses are:
+\begin{enumerate}[label=(H\arabic*)]
+  \item High-latitude Planck dust patches contain representative samples of
+  the non-Gaussian polarized dust morphology relevant for the BICEP/Keck field.
+
+  \item A finite set of scattering-transform statistics, supplemented by
+  explicit power-spectrum constraints, captures the multiscale, anisotropic,
+  non-Gaussian statistics needed for BICEP/Keck foreground validation.
+
+  \item The generated realizations need not be phase-locked to the actual
+  Planck sky at low multipoles.  In fact, BICEP/Keck prefers statistically
+  independent realizations rather than maps deterministically tied to
+  ``Planck truth'' on the BICEP field.  In other words, the goal is not to
+  reproduce the particular observed sky realization pixel by pixel, but to
+  reproduce the relevant ensemble statistics.
+
+  \item The high-latitude maps must be amplitude-calibrated using a simple
+  map-space normalization from the component-separated BICEP patch, and then
+  spectrally extrapolated so that, on the BICEP/Keck mask, their amplitudes
+  and cross-frequency decorrelation are compatible with the BK18 constraints.
+  Cross-frequency decorrelation means that the dust pattern at two frequencies
+  is not exactly the same map multiplied by two constants; spatial variations
+  of the dust SED can suppress the cross-spectrum between frequencies relative
+  to their auto-spectra.
+\end{enumerate}
+
+\section{STL Statistical Model at 353 GHz}
+
+Let $\Phi$ denote the STL feature map.  In the current Planck component
+separation code, $\Phi$ includes mean and variance, scattering covariance
+coefficients
+\[
+  S_1,\ S_2,\ S_3,\ S_4,
+\]
+and, when enabled, radially binned Fourier power spectra.  The statistics may
+include selected cross-statistics between channels, for example between
+polarized maps and an auxiliary intensity tracer.
+
+The generative problem at $353\,{\rm GHz}$ can be written as follows.  We seek
+a probability law $\mathcal P_{\rm dust}$ on synthesized BICEP-patch
+polarization maps
+\[
+  \tilde{\bm s}_{353}^{\prime(a)}
+  =
+  \left(\tilde Q_{353}^{\prime(a)},\tilde U_{353}^{\prime(a)}\right)
+\]
+such that its expected STL statistics match those measured from the
+high-latitude Planck reference data:
+\[
+  \mathbb E_{\tilde{\bm s}'\sim\mathcal P_{\rm dust}}
+  \left[\Phi(\tilde{\bm s}', \tilde I_{\rm aux}')\right]
+  \simeq
+  \frac{1}{N_{\rm HL}}
+  \sum_{p\in\Omega_{\rm HL}}
+  \Phi(\tilde{\bm s}_{353,p}, \tilde I_{{\rm aux},p}).
+\]
+The generated maps are then checked against the BICEP/Keck two-point
+constraints,
+\[
+  D_\ell^{BB,353}
+  =
+  \frac{\ell(\ell+1)}{2\pi} C_\ell^{BB,353}
+  \simeq
+  A_{d,353}
+  \left(\frac{\ell}{80}\right)^{\alpha_d},
+\]
+but this is not intended to be a hard per-$\ell$ constraint in the synthesis
+objective.  The primary calibration is instead a simple map-space amplitude
+renormalization, using the component-separated BICEP patch as the target
+amplitude reference.
+
+Operationally, one may generate maps by solving, for each realization $a$, an
+optimization problem of the form
+\[
+  \tilde{\bm s}_{353}^{\prime(a)}
+  =
+  \operatorname*{arg\,min}_{\bm u}
+  \left\|
+    \Phi(\bm u,\tilde I_{\rm aux}^{\prime(a)})
+    -
+    \widehat{\Phi}_{\rm HL}
+  \right\|_2^2,
+\]
+where $\widehat{\Phi}_{\rm HL}$ is the empirical STL summary of the
+high-latitude Planck reference data, after the chosen map-space amplitude
+normalization.  Random initial conditions, random reference patch draws, or
+minibatch statistics provide independent realizations.
+
+\section{Frequency Scaling and Decorrelation}
+
+BICEP/Keck does not only need $353\,{\rm GHz}$ maps.  It needs maps integrated
+over its observing bandpasses.  A minimal dust SED model is a modified
+blackbody:
+\[
+  \tilde Q_\nu'(\hat n)
+  =
+  \tilde Q_{353}'(\hat n)\,
+  f_d(\nu;\beta_d,T_d),
+  \qquad
+  \tilde U_\nu'(\hat n)
+  =
+  \tilde U_{353}'(\hat n)\,
+  f_d(\nu;\beta_d,T_d),
+\]
+where
+\[
+  f_d(\nu;\beta_d,T_d)
+  =
+  \frac{g_{\rm CMB}(353)}{g_{\rm CMB}(\nu)}
+  \left(\frac{\nu}{353\,{\rm GHz}}\right)^{\beta_d}
+  \frac{B_\nu(T_d)}{B_{353}(T_d)}.
+\]
+This single-SED model produces no cross-frequency decorrelation: each
+frequency map has exactly the same morphology, only rescaled.  A minimal
+decorrelating example is
+\[
+  \tilde Q_\nu'(\hat n)
+  =
+  \tilde Q_{353}'(\hat n)
+  \left(\frac{\nu}{353\,{\rm GHz}}\right)^{\beta_d(\hat n)}.
+\]
+If $\beta_d(\hat n)$ varies across the sky, two pixels with the same
+$353\,{\rm GHz}$ amplitude may be rescaled differently at $150\,{\rm GHz}$.
+The $150\,{\rm GHz}$ and $353\,{\rm GHz}$ maps are then no longer identical
+up to a global multiplicative factor.
+
+
+The email exchange
+explicitly asks for enough SED complexity to reproduce the expected
+decorrelation constraints, so the proposed model should include at least one
+of the following extensions:
+\begin{enumerate}[label=(S\arabic*)]
+  \item spatially varying spectral index and/or temperature,
+  $\beta_d(\hat n)$ and $T_d(\hat n)$;
+
+  \item a multi-layer dust model,
+  \[
+    \tilde Q_\nu'(\hat n)
+    =
+    \sum_{k=1}^{K}
+    \tilde Q_{k,353}'(\hat n)\,
+    f_d(\nu;\beta_{d,k}(\hat n),T_{d,k}(\hat n)),
+  \]
+  with the same expression for $\tilde U_\nu'$;
+
+  \item stochastic small-scale SED fluctuations whose amplitude is tuned to
+  produce an allowed level of decorrelation.
+\end{enumerate}
+
+For two frequencies $\nu_1,\nu_2$, define the dust decorrelation coefficient
+on the BICEP/Keck mask by
+\[
+  \Delta_d(\nu_1,\nu_2;\ell)
+  =
+  \frac{
+    C_\ell^{BB,d}(\nu_1\times\nu_2)
+  }{
+    \sqrt{
+      C_\ell^{BB,d}(\nu_1\times\nu_1)
+      C_\ell^{BB,d}(\nu_2\times\nu_2)
+    }
+  }.
+\]
+BK18 found that the likelihood for the decorrelation parameter peaks at unity,
+i.e. at no detected decorrelation, and Fig.~18 of BK18 provides the relevant
+constraint for the $217\times353\,{\rm GHz}$ comparison.  Therefore the SED
+model should be rich enough to explore decorrelation, but tuned so that
+\[
+  \Delta_d
+\]
+remains compatible with the BICEP/Keck likelihood on the sky mask.  Strongly
+decorrelated models are useful stress tests only if clearly labeled as such.
+
+\section{Ratio-Map SED Generative Strategy}
+
+Following the discussion with Fran\c{c}ois Boulanger, Fran\c{c}ois Levrier,
+and S\'ebastien, the preferred practical route is to separate the problem into
+two coupled generative pieces:
+\begin{enumerate}[label=(R\arabic*)]
+  \item a generative model for the reference dust morphology, for instance at
+  $353\,{\rm GHz}$;
+
+  \item a generative model for frequency-ratio maps, which encode the spatial
+  variation of the dust SED and therefore the possible decorrelation between
+  channels.
+\end{enumerate}
+The ratio model is intended to be learned from simulations of pairs of
+frequency channels.  Direct ratios of $Q$ or $U$ are undesirable because these
+fields change sign and have many zero crossings.  We therefore define the
+ratio on polarized intensity,
+\[
+  \tilde P_\nu(\hat n)
+  =
+  \left[
+    \tilde Q_\nu^2(\hat n)
+    +
+    \tilde U_\nu^2(\hat n)
+  \right]^{1/2},
+\]
+possibly after smoothing, masking, or debiasing if required.  For two
+channels $353$ and $217\,{\rm GHz}$, the basic ratio field is
+\[
+  \rho_{353/217}(\hat n)
+  =
+  \mathcal R_\epsilon
+  \left[
+    \tilde P_{353}(\hat n),
+    \tilde P_{217}(\hat n)
+  \right],
+\]
+where $\mathcal R_\epsilon$ denotes the chosen regularized ratio operation.
+In the simplest implementation,
+\[
+  \rho_{353/217}(\hat n)
+  =
+  \frac{
+    \tilde P_{353}(\hat n)
+  }{
+    \tilde P_{217}(\hat n)+\epsilon_P
+  },
+\]
+with a small regularization or mask to avoid unstable ratios in low-signal
+pixels.  An equivalent log-ratio parameterization,
+\[
+  \eta_{353/217}(\hat n)
+  =
+  \log \rho_{353/217}(\hat n),
+\]
+may be preferable numerically because it keeps the generated ratio positive.
+The essential object is a spatial field that describes how the polarized dust
+amplitude changes between two frequencies.
+
+Let $\Psi$ denote the scattering feature map used for ratio fields.  From an
+ensemble of simulated ratios one measures
+\[
+  \widehat\Psi_{353/217}
+  =
+  \frac{1}{N_{\rm sim}^{\rm ratio}}
+  \sum_{b=1}^{N_{\rm sim}^{\rm ratio}}
+  \Psi\!\left(\rho_{353/217}^{(b)}\right).
+\]
+The ratio realizations used in the BICEP simulations are then generated by
+solving
+\[
+  \rho_{353/217}^{\prime(a)}
+  =
+  \operatorname*{arg\,min}_{v}
+  \left\|
+    \Psi(v)
+    -
+    \widehat\Psi_{353/217}
+  \right\|_2^2
+  +
+  \lambda_{\rm ratio}
+  \,\mathcal C_{\rm ratio}(v),
+\]
+where $\mathcal C_{\rm ratio}$ denotes any additional constraints imposed on
+the ratio maps, such as smoothness, allowed dynamic range, or a target
+decorrelation level.
+
+The $353\,{\rm GHz}$ morphology is still generated from the high-latitude dust
+statistics.  Let
+\[
+  \mu_{\rm HL}
+  =
+  \frac{1}{N_{\rm HL}}
+  \sum_{p\in\Omega_{\rm HL}}
+  \Phi(\tilde{\bm s}_{353,p},\tilde I_{{\rm aux},p})
+\]
+be the mean scattering summary over high-latitude sky patches.  Before using
+this target for BICEP/Keck simulations, the high-latitude maps are multiplied
+by a single scalar chosen from the component-separated BICEP patch.  For
+example, define a robust polarized-intensity amplitude
+\[
+  A_P[\tilde{\bm s}]
+  =
+  {\rm RMS}_{W_{\rm BK}}
+  \left[
+    \left(\tilde Q^2+\tilde U^2\right)^{1/2}
+  \right],
+\]
+with the same smoothing, masking, and apodization convention applied to the
+high-latitude patches and to the BICEP patch.  If
+$\tilde{\bm s}_{353}^{\rm BK,cs}$ denotes the component-separated BICEP-patch
+dust solution, set
+\[
+  \alpha_{\rm HL\to BK}
+  =
+  \frac{
+    A_P[\tilde{\bm s}_{353}^{\rm BK,cs}]
+  }{
+    A_P[\tilde{\bm s}_{353}^{\rm HL}]
+  },
+  \qquad
+  \tilde{\bm s}_{353,p}
+  \leftarrow
+  \alpha_{\rm HL\to BK}\,
+  \tilde{\bm s}_{353,p}.
+\]
+The BICEP-adapted scattering target is then
+\[
+  \mu_{\rm HL}^{\rm BK}
+  =
+  \frac{1}{N_{\rm HL}}
+  \sum_{p\in\Omega_{\rm HL}}
+  \Phi(\alpha_{\rm HL\to BK}\tilde{\bm s}_{353,p},
+       \alpha_{\rm HL\to BK}\tilde I_{{\rm aux},p}),
+\]
+or the corresponding normalized version if the auxiliary channel is not to be
+rescaled.  The reference maps are generated as
+\[
+  \tilde{\bm s}_{353}^{\prime(a)}
+  =
+  \operatorname*{arg\,min}_{\bm u}
+  \left\|
+    \Phi(\bm u,\tilde I_{\rm aux}^{\prime(a)})
+    -
+    \mu_{\rm HL}^{\rm BK}
+  \right\|_2^2,
+\]
+where $\mu_{\rm HL}^{\rm BK}$ denotes the high-latitude scattering target
+renormalized to the BICEP/Keck amplitude.  There is no direct $BB$-spectrum
+fitting term in this first implementation.  For an even simpler first
+implementation, one does not necessarily need to generate the reference
+morphology from scratch: one can start directly from the already solved
+component-separation result on the BICEP patch itself and use it as the
+initial $353\,{\rm GHz}$ dust template to test the extrapolation pipeline.
+
+Given a synthesized reference map and a synthesized ratio map, one obtains the
+lower-frequency polarized amplitude by inversion of the ratio:
+\[
+  \tilde P_{217}^{\prime(a)}(\hat n)
+  =
+  \frac{
+    \tilde P_{353}^{\prime(a)}(\hat n)
+  }{
+    \rho_{353/217}^{\prime(a)}(\hat n)
+  }.
+\]
+The simplest extrapolation keeps the polarization angle of the reference map
+and rescales the polarized vector:
+\[
+  \begin{pmatrix}
+    \tilde Q_{217}^{\prime(a)}(\hat n) \\
+    \tilde U_{217}^{\prime(a)}(\hat n)
+  \end{pmatrix}
+  =
+  \frac{
+    \tilde P_{217}^{\prime(a)}(\hat n)
+  }{
+    \tilde P_{353}^{\prime(a)}(\hat n)+\epsilon_P
+  }
+  \begin{pmatrix}
+    \tilde Q_{353}^{\prime(a)}(\hat n) \\
+    \tilde U_{353}^{\prime(a)}(\hat n)
+  \end{pmatrix}.
+\]
+More generally, for any target band $\nu$ one can learn or prescribe a ratio
+field $\rho_{353/\nu}$ and set
+\[
+  \tilde P_{\nu}^{\prime(a)}(\hat n)
+  =
+  \frac{
+    \tilde P_{353}^{\prime(a)}(\hat n)
+  }{
+    \rho_{353/\nu}^{\prime(a)}(\hat n)
+  },
+\]
+with the same polarized-vector rescaling used to obtain
+$\tilde Q_\nu^{\prime(a)}$ and $\tilde U_\nu^{\prime(a)}$.  This makes the SED
+extrapolation a generative problem for polarized-intensity ratio fields rather
+than only a parametric modified-blackbody scaling.  The ratio statistics
+control how much the polarized amplitude changes between channels, and
+therefore contribute to the decorrelation coefficients measured on the
+BICEP/Keck mask.
+
+The validation requirement is unchanged: after extrapolation to the relevant
+BICEP/Keck bandpasses, the maps must satisfy the amplitude, angular-spectrum,
+and decorrelation constraints.  In particular, the ratio-generated maps should
+be checked through
+\[
+  \Delta_d(\nu_1,\nu_2;\ell)
+  =
+  \frac{
+    C_\ell^{BB,d}(\nu_1\times\nu_2)
+  }{
+    \sqrt{
+      C_\ell^{BB,d}(\nu_1\times\nu_1)
+      C_\ell^{BB,d}(\nu_2\times\nu_2)
+    }
+  }
+\]
+on the BICEP/Keck mask and compared with the BK18/BK24 allowed range.
+
+\subsection{Working in $Q,U$ while constraining $BB$}
+
+The generative variables in the proposed pipeline are polarization maps,
+\[
+  \tilde{\bm s}_{\nu}^{\prime(a)}
+  =
+  \left(
+    \tilde Q_{\nu}^{\prime(a)},
+    \tilde U_{\nu}^{\prime(a)}
+  \right),
+\]
+or quantities derived from them such as the polarized intensity
+$\tilde P_\nu'=(\tilde Q_\nu'^2+\tilde U_\nu'^2)^{1/2}$.  The BICEP/Keck
+foreground constraints, however, are naturally stated in terms of $E/B$
+spectra, in particular the dust $BB$ amplitude at $\ell\simeq80$ and the
+shape of $D_\ell^{BB}$ over the BICEP/Keck range.
+
+The intended strategy is therefore not to microtune the $BB$ spectrum mode by
+mode, nor to use $BB$ as the primary amplitude calibration.  The primary
+amplitude calibration is the single map-space factor
+$\alpha_{\rm HL\to BK}$ defined from the component-separated BICEP patch.
+After this calibration, each synthesized $Q,U$ realization is transformed to
+$E,B$ on the BICEP/Keck patch, with the same mask/apodization convention used
+for the validation spectra, and its $BB$ spectrum is measured:
+\[
+  \widehat D_\ell^{BB,(a)}
+  =
+  \widehat D_\ell^{BB}
+  \left[
+    W_{\rm BK}
+    \left(
+      \tilde Q_{\nu}^{\prime(a)},
+      \tilde U_{\nu}^{\prime(a)}
+    \right)
+  \right].
+\]
+This measured spectrum is then used as a diagnostic only.  It verifies that
+the map-space calibration gives a $BB$ amplitude and slope compatible with
+BICEP/Keck, but it is not used to fit or overwrite the realization.
+
+This distinction is important.  The scattering model should determine the
+polarized morphology in $Q,U$, and the resulting $BB$ spectrum should emerge
+from that morphology after the usual $Q/U\rightarrow E/B$ projection.  The
+$BB$ constraint is used to flag or reject realizations whose spectra are
+grossly incompatible with BICEP/Keck data.  It should not be used as a hard
+per-$\ell$ target that overwrites the non-Gaussian structure or
+frequency-dependent morphology generated by the model.
+
+\section{Calibration and Validation Against BICEP/Keck Constraints}
+
+The operational calibration is deliberately simple.  We first use the
+component-separated BICEP patch to define a single map-space amplitude factor,
+and we multiply the high-latitude $Q,U$ maps by that number before measuring
+the BICEP-adapted scattering target.  The $BB$ spectrum is then computed only
+after synthesis and SED extrapolation, as a validation product.
+
+At minimum, on the BICEP/Keck mask:
+\begin{enumerate}[label=(C\arabic*)]
+  \item the map-space polarized-intensity amplitude at $353\,{\rm GHz}$ should
+  match the component-separated BICEP-patch reference, through the single
+  scalar $\alpha_{\rm HL\to BK}$;
+
+  \item after this calibration, the resulting $BB$ spectrum should be checked
+  against the BK18 scale, approximately
+  $A_{d,353}\simeq 4.4\,\mu{\rm K}^2$ at $\ell=80$, or the updated BK24 target
+  if supplied;
+
+  \item the angular spectrum should have an acceptable slope over
+  $30\lesssim\ell\lesssim500$, but it is not microtuned bin by bin;
+
+  \item the cross-frequency decorrelation coefficient should lie inside the
+  allowed BICEP/Keck range;
+
+  \item the maps should not be locked to the observed BICEP/Planck phases at
+  low multipoles;
+
+  \item the ensemble scatter across realizations should be available, since
+  BICEP/Keck will use the simulations to estimate bias and uncertainty in
+  recovered $r$.
+\end{enumerate}
+
+\section{Mathematical Workflow and Problem Statement}
+
+The proposed workflow can be summarized as a sequence of maps and constraints.
+First, start from cleaned high-latitude Planck polarization patches
+\[
+  \left\{
+    \tilde{\bm s}_{353,p}
+    =
+    (\tilde Q_{353,p},\tilde U_{353,p})
+  \right\}_{p\in\Omega_{\rm HL}},
+  \qquad
+  \tilde I_{{\rm aux},p}.
+\]
+Measure their empirical STL summary
+\[
+  \widehat{\Phi}_{\rm HL}
+  =
+  \frac{1}{N_{\rm HL}}
+  \sum_{p\in\Omega_{\rm HL}}
+  \Phi(\tilde{\bm s}_{353,p},\tilde I_{{\rm aux},p}),
+\]
+after applying the single map-space normalization.  The normalization factor
+$\alpha_{\rm HL\to BK}$ is inferred from the component-separated BICEP patch.
+
+Second, synthesize independent BICEP-patch dust realizations at
+$353\,{\rm GHz}$:
+\[
+  \tilde{\bm s}_{353}^{\prime(a)}
+  =
+  \operatorname*{arg\,min}_{\bm u}
+  \left[
+    \left\|
+      \Phi(\bm u,\tilde I_{\rm aux}^{\prime(a)})
+      -
+      \widehat{\Phi}_{\rm HL}
+    \right\|_2^2
+  \right].
+\]
+The prime distinguishes synthesized maps from the cleaned Planck reference
+maps.  The index $a$ labels independent statistical realizations.
+
+Third, validate the amplitude of the synthesized realization on the
+BICEP/Keck patch.  If $W_{\rm BK}(\hat n)$ is the BICEP/Keck mask or
+apodization window, measure both the map-space polarized-intensity amplitude
+and the induced $BB$ amplitude:
+\[
+  \widehat A_{P,353}^{(a)}
+  =
+  A_P
+  \left[
+    W_{\rm BK}\tilde{\bm s}_{353}^{\prime(a)}
+  \right],
+  \qquad
+  \widehat D_\ell^{BB,(a)}
+  =
+  \widehat D_\ell^{BB}
+  \left[
+    W_{\rm BK}\tilde{\bm s}_{353}^{\prime(a)}
+  \right].
+\]
+No $BB$-based rescaling is applied at this stage in the baseline workflow.
+The $BB$ spectrum is kept as a validation diagnostic for compatibility with
+BICEP/Keck.
+
+Fourth, apply an SED model to obtain bandpass maps
+\[
+  \left\{
+    \tilde{\bm s}_{\nu}^{\prime(a)}
+  \right\}_{\nu\in\mathcal B},
+\]
+where $\mathcal B$ is the set of BICEP/Keck observing bandpasses.  The SED
+parameters must be tuned so that the decorrelation coefficients
+\[
+  \Delta_d^{(a)}(\nu_1,\nu_2;\ell)
+  =
+  \frac{
+    C_\ell^{BB,d}
+    \!\left[
+      W_{\rm BK}\tilde{\bm s}_{\nu_1}^{\prime(a)}
+      \times
+      W_{\rm BK}\tilde{\bm s}_{\nu_2}^{\prime(a)}
+    \right]
+  }{
+    \sqrt{
+      C_\ell^{BB,d}
+      \!\left[
+        W_{\rm BK}\tilde{\bm s}_{\nu_1}^{\prime(a)}
+        \times
+        W_{\rm BK}\tilde{\bm s}_{\nu_1}^{\prime(a)}
+      \right]
+      C_\ell^{BB,d}
+      \!\left[
+        W_{\rm BK}\tilde{\bm s}_{\nu_2}^{\prime(a)}
+        \times
+        W_{\rm BK}\tilde{\bm s}_{\nu_2}^{\prime(a)}
+      \right]
+    }
+  }
+\]
+remain compatible with the BK18/BK24 allowed range.
+
+In compact form, the mathematical problem is therefore to construct an
+ensemble distribution $\mathcal P_{\Theta}$ for
+\[
+  \left\{
+    \tilde{\bm s}_{\nu}^{\prime}
+  \right\}_{\nu\in\mathcal B}
+\]
+such that, on the BICEP/Keck patch,
+\[
+  \mathbb E_{\mathcal P_\Theta}
+  \left[
+    \Phi(\tilde{\bm s}_{353}^{\prime},\tilde I_{\rm aux}^{\prime})
+  \right]
+  \approx
+  \widehat{\Phi}_{\rm HL},
+\]
+\[
+  A_P[\tilde{\bm s}_{353}^{\prime}]
+  \approx
+  A_P[\tilde{\bm s}_{353}^{\rm BK,cs}],
+\]
+with the amplitude matching imposed through the single map-space factor
+$\alpha_{\rm HL\to BK}$.  The resulting $BB$ spectrum is then checked a
+posteriori,
+\[
+  D_\ell^{BB,d}
+  \ \text{compatible with}\
+  A_{d,353}^{\rm BK}
+  \left(\frac{\ell}{80}\right)^{\alpha_d},
+  \qquad
+  30\lesssim \ell \lesssim 500,
+\]
+but it is not fitted directly in the synthesis objective.  Finally,
+\[
+  \Delta_d(\nu_1,\nu_2;\ell)
+  \in
+  \mathcal C_{\rm BK},
+\]
+where $\mathcal C_{\rm BK}$ denotes the BICEP/Keck decorrelation constraint.
+The scientific test is then to run the BICEP/Keck likelihood on
+\[
+  {\rm CMB}^{(a)} + {\rm noise}^{(a)}
+  + \tilde{\bm s}_{\nu}^{\prime(a)}
+\]
+and measure the induced shift
+\[
+  \Delta r
+  =
+  \widehat r_{\rm recovered}
+  -
+  r_{\rm input}.
+\]
+The model is successful if it provides foreground realizations that are
+realistic, independent, BICEP-compatible, and useful for quantifying whether
+non-Gaussian dust morphology or SED complexity can bias $r$ at a relevant
+level.
+
+\end{document}
