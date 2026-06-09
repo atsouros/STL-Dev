@@ -1,0 +1,51 @@
+pwd=/pscratch/sd/a/atsouros/STL/Moment Network
+host=nid008660
+python3=/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/bin/python3
+Python 3.12.12
+start=Mon Jun  8 07:50:44 AM PDT 2026
+DATASET_DIR=/pscratch/sd/a/atsouros/STL/moment_network_dataset/version_2
+OUTPUT_DIR=/pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch
+PATCH_LIST=0-191
+EXPECTED_PATCH_COUNT=192
+BATCH_SIZE=8
+NUM_WORKERS=4
+N_EPOCHS_MEAN=1
+N_EPOCHS_FULL=1
+STOKES=auto
+SLURM_NTASKS=2
+MAX_TRAIN_BATCHES=0
+MAX_VAL_BATCHES=0
+NORMALIZE=1
+Loaded normalization stats from /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/normalization_stats.npz
+device=cuda:0
+dataset_dir=/pscratch/sd/a/atsouros/STL/moment_network_dataset/version_2
+output_dir=/pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch
+patch_files=192 train_files=173 val_files=19
+batch_size=8 workers=4
+epochs_mean=1 epochs_full=1
+Assigned Stokes channels: ['U']
+Loaded normalization stats from /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/normalization_stats.npz
+device=cuda:0
+dataset_dir=/pscratch/sd/a/atsouros/STL/moment_network_dataset/version_2
+output_dir=/pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch
+patch_files=192 train_files=173 val_files=19
+batch_size=8 workers=4
+epochs_mean=1 epochs_full=1
+Assigned Stokes channels: ['Q']
+Training independent U network
+Training independent Q network
+Saved intermediate checkpoint to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models/checkpoints/moment_network_u_epoch_0001_mean.pth
+[U][mean] epoch=0001 train=2.955746e-01 val=5.205493e-01
+Saved intermediate checkpoint to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models/checkpoints/moment_network_q_epoch_0001_mean.pth
+[Q][mean] epoch=0001 train=3.291959e-01 val=7.451083e-01
+Saved intermediate checkpoint to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models/checkpoints/moment_network_u_epoch_0002_full.pth
+[U][full] epoch=0002 train=-2.089520e-01 val=-2.463420e-02 new_best
+Deleted 3 intermediate checkpoints from /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models/checkpoints
+Saved final models to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models
+Saved summary to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/training_summary.json
+Saved intermediate checkpoint to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models/checkpoints/moment_network_q_epoch_0002_full.pth
+[Q][full] epoch=0002 train=-2.276083e-01 val=-1.001727e-01 new_best
+Deleted 1 intermediate checkpoints from /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models/checkpoints
+Saved final models to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/models
+Saved summary to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_full_epoch/training_summary.json
+end=Mon Jun  8 07:52:38 AM PDT 2026

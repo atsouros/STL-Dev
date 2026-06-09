@@ -1,0 +1,54 @@
+/pscratch/sd/a/atsouros/STL/STL_main/__init__.py:9: UserWarning: In development mode: Please run 'pip install -e .' in the root directory of the STL repository to properly install the package, its dependencies and enable proper version tracking.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/pscratch/sd/a/atsouros/STL/Moment Network/make_dataset.py", line 638, in <module>
+    main()
+  File "/pscratch/sd/a/atsouros/STL/Moment Network/make_dataset.py", line 615, in main
+    written.append(str(process_record(record, args, device)))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/Moment Network/make_dataset.py", line 442, in process_record
+    q_synth_full = synthesize_single_channel(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/Moment Network/make_dataset.py", line 262, in synthesize_single_channel
+    generated = optimize_from_maps(
+                ^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/STL_main/Synthesis.py", line 260, in optimize_from_maps
+    u_opt = optimize_lbfgs(
+            ^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/STL_main/Synthesis.py", line 129, in optimize_lbfgs
+    optimizer.step(closure)
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/optimizer.py", line 517, in wrapper
+    out = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/optim/lbfgs.py", line 330, in step
+    orig_loss = closure()
+                ^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/STL_main/Synthesis.py", line 117, in closure
+    output = model()
+             ^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/STL_main/Synthesis.py", line 82, in forward
+    st_u = self.st_op.apply(
+           ^^^^^^^^^^^^^^^^^
+  File "/pscratch/sd/a/atsouros/STL/STL_main/ST_Operator.py", line 701, in apply
+    data_st.to_norm(
+  File "/pscratch/sd/a/atsouros/STL/STL_main/ST_Statistics.py", line 283, in to_norm
+    self._normalize_scatcov()
+  File "/pscratch/sd/a/atsouros/STL/STL_main/ST_Statistics.py", line 166, in _normalize_scatcov
+    self.S1 = self.S1 / bk.sqrt(
+              ^^^^^^^^^^^^^^^^^^
+RuntimeError: The size of tensor a (7) must match the size of tensor b (6) at non-singleton dimension 3
+srun: error: nid008433: task 0: Exited with exit code 1
+srun: Terminating StepId=54000242.0
+

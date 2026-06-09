@@ -1,0 +1,369 @@
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\graphicspath{{../mn_plots/}}
+
+\title[Moment Networks]{Moment Networks}
+\author{}
+\date{\today}
+
+\newcommand{\signal}{s}
+\newcommand{\data}{d}
+\newcommand{\synth}{s'}
+\newcommand{\target}{\tilde{s}}
+\newcommand{\noise}{n}
+\newcommand{\net}{f_\theta}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Goal}
+  \begin{block}{What we want}
+    For each Planck patch, use the data map \(\data\) to learn the posterior
+    \[
+      p(\signal \mid \data).
+    \]
+
+    We then want to use a NN to infer the first two moments:
+    \[
+      \mathbb{E}[\signal \mid \data],
+      \qquad
+      \operatorname{Std}[\signal \mid \data].
+    \]
+  \end{block}
+
+  \vspace{0.4em}
+  Here
+  \[
+    \signal =
+    \begin{pmatrix}
+      Q^{s} \\
+      U^{s}
+    \end{pmatrix},
+    \qquad
+    \data =
+    \begin{pmatrix}
+      Q^{d} \\
+      U^{d}
+    \end{pmatrix}.
+  \]
+
+  The output maps should have the original patch resolution, \(384 \times 384\).
+\end{frame}
+
+\begin{frame}{Basic Supervised Problem}
+  We train on synthetic signal/data pairs:
+  \[
+    \data_i = \synth_i + \noise_i.
+  \]
+
+  \vspace{0.4em}
+  \begin{itemize}
+    \item \(\synth_i\): synthesized signal map from component-separated patch statistics.
+    \item \(\noise_i\): nuisance realization for the same patch.
+    \item \(\data_i\): simulated observed data map.
+  \end{itemize}
+
+  \vspace{0.4em}
+  The network learns a conditional map
+  \[
+    \data \longmapsto \text{posterior moments of } \signal \mid \data.
+  \]
+\end{frame}
+
+\begin{frame}{Dataset Generation}
+  For each patch \(p\):
+
+  \begin{enumerate}
+    \item Start from the component-separated result
+      \[
+        \target_p = (\tilde{Q}_p, \tilde{U}_p).
+      \]
+    \item Synthesize maps \(\synth_{p,i}\) matching scattering statistics.
+    \item Augment the synthesized maps.
+    \item Add same-patch nuisance realizations.
+  \end{enumerate}
+
+  \vspace{0.4em}
+  Current dataset scale:
+  \[
+    10 \text{ syntheses per patch}
+    \times
+    8 \text{ augmentations}
+    =
+    80 \text{ pairs per patch}.
+  \]
+
+  Files contain
+  \[
+    (\synth_Q, d_Q, \synth_U, d_U)
+  \]
+  for every generated pair.
+\end{frame}
+
+\begin{frame}{Synthesis and Boundary Conditions}
+  The real Planck patches are not periodic:
+  \[
+    \texttt{pbc} = \texttt{False}.
+  \]
+
+  \vspace{0.5em}
+  For augmentation, we synthesize larger periodic maps and crop back:
+
+  \begin{center}
+  \begin{tabular}{lll}
+    \toprule
+    Object & Shape & Boundary condition \\
+    \midrule
+    Component-separated target & \(384 \times 384\) & non-periodic \\
+    Running synthesis & larger map & periodic \\
+    Final training image & \(384 \times 384\) & center crop \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \vspace{0.5em}
+  This avoids applying periodic translations directly to non-periodic observed patches.
+\end{frame}
+
+\begin{frame}{Moment Network Loss}
+  The reference implementations train a Gaussian moment network:
+  \[
+    \net(\data) =
+    \left(
+      \mu_\theta(\data),
+      \log \sigma_\theta^2(\data)
+    \right).
+  \]
+
+  For training pairs \(\{(\data_i,\synth_i)\}_{i=1}^N\), first learn the posterior mean:
+  \[
+    \mathcal{L}_{\rm mean}
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \left\|
+      \synth_i - \mu_\theta(\data_i)
+    \right\|_2^2 .
+  \]
+
+  Then learn mean and per-pixel marginal variance with the pixelwise Gaussian NLL:
+  \[
+    \mathcal{L}_{\rm NLL}
+    =
+    \frac{1}{2N|\Omega|}
+    \sum_{i=1}^{N}
+    \sum_{r \in \Omega}
+    \left[
+      \log \sigma_\theta^2(\data_i)_r
+      +
+      \frac{
+        \left(\synth_{i,r} - \mu_\theta(\data_i)_r\right)^2
+      }{
+        \sigma_\theta^2(\data_i)_r
+      }
+    \right].
+  \]
+
+  \(\Omega\) is the pixel grid. This is a diagonal Gaussian approximation, so it does not learn the full spatial covariance.
+\end{frame}
+
+\begin{frame}{Why Did the Std Maps Collapse?}
+  The mean is strongly supervised by channel-specific targets:
+  \[
+    \mu_Q(d) \approx \mathbb{E}[s_Q \mid d],
+    \qquad
+    \mu_U(d) \approx \mathbb{E}[s_U \mid d].
+  \]
+
+  \vspace{0.4em}
+  The std is learned indirectly through residual statistics:
+  \[
+    \sigma^2(d)_r
+    \quad\text{is driven by}\quad
+    \left(s'_r-\mu(d)_r\right)^2 .
+  \]
+
+  \vspace{0.4em}
+  In the joint network, Q and U shared the same latent representation:
+  \[
+    (Q^d,U^d)
+    \longmapsto
+    (\log\sigma_Q^2,\log\sigma_U^2).
+  \]
+
+  If the dominant residual patterns are common to Q and U, the variance heads can learn nearly the same uncertainty template.
+\end{frame}
+
+\begin{frame}{Degrees of Freedom}
+  During training, the degrees of freedom are the neural-network weights:
+  \[
+    \theta.
+  \]
+
+  \vspace{0.5em}
+  During inference, the patch is fixed and the network produces maps:
+  \[
+    \mu_\theta(\data) \in \mathbb{R}^{384 \times 384},
+    \qquad
+    \sigma_\theta(\data) \in \mathbb{R}^{384 \times 384}.
+  \]
+
+  \vspace{0.5em}
+  For polarization, this is done separately for \(Q\) and \(U\).
+\end{frame}
+
+\begin{frame}{Previous Version: Joint Network}
+  The first implementation trained one shared Q/U network:
+  \[
+    (Q^d, U^d)
+    \longmapsto
+    (\mu_Q, \mu_U, \log\sigma_Q^2, \log\sigma_U^2).
+  \]
+
+  \vspace{0.7em}
+  This produced reasonable-looking posterior mean maps.
+
+  \vspace{0.7em}
+  But the uncertainty maps were suspicious:
+  \[
+    \sigma_Q(\data) \approx \sigma_U(\data)
+  \]
+  in morphology.
+
+  \vspace{0.7em}
+  The likely issue was architectural: Q and U shared the full U-Net trunk.
+\end{frame}
+
+\begin{frame}{Previous Version: Example Inference}
+  \centering
+  \includegraphics[height=0.72\textheight]{patch_153_moment_network_inference.png}
+
+  \vspace{0.4em}
+  \small
+  Joint-network output for one patch. Mean maps look plausible, but Q/U uncertainty structure is too similar.
+\end{frame}
+
+\begin{frame}{Previous Version: Std Diagnostic}
+  \centering
+  \includegraphics[width=0.78\linewidth,height=0.62\textheight,keepaspectratio]{patch_153_posterior_std_channel_check.png}
+
+  \vspace{0.4em}
+  \small
+  The \(U\)-minus-\(Q\) std diagnostic exposed that the two std maps were close but not identical.
+\end{frame}
+
+\begin{frame}{Reference Design}
+  We can also do
+  \[
+    Q^d
+    \longmapsto
+    (\mu_Q, \log\sigma_Q^2),
+  \]
+
+  \[
+    U^d
+    \longmapsto
+    (\mu_U, \log\sigma_U^2).
+  \]
+
+  \vspace{0.6em}
+  This avoids coupling the Q and U variance heads through a shared trunk.
+\end{frame}
+
+\begin{frame}{Current Corrected Implementation}
+  The corrected implementation trains two independent U-Nets:
+
+  \begin{center}
+  \begin{tabular}{lll}
+    \toprule
+    Network & Input & Output \\
+    \midrule
+    Q network & \(Q^d\) & \((\mu_Q, \log\sigma_Q^2)\) \\
+    U network & \(U^d\) & \((\mu_U, \log\sigma_U^2)\) \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}{Inference}
+  For a selected patch:
+
+  \begin{enumerate}
+    \item Load raw signal maps:
+      \[
+        Q_{768}, U_{768} \in \mathbb{R}^{768 \times 768}.
+      \]
+    \item Downgrade by \(2\times2\) block averaging:
+      \[
+        Q_{384}, U_{384} \in \mathbb{R}^{384 \times 384}.
+      \]
+    \item Run Q and U networks independently.
+  \end{enumerate}
+
+  \vspace{0.4em}
+  Final products:
+  \[
+    \mu_Q,\ \sigma_Q,\ \mu_U,\ \sigma_U.
+  \]
+\end{frame}
+
+\begin{frame}{Previous Version: More Examples}
+  \centering
+  \includegraphics[height=0.72\textheight]{patch_3_moment_network_inference.png}
+
+  \vspace{0.4em}
+  \small
+  Example from the previous joint-network run.
+\end{frame}
+
+\begin{frame}{Previous Version: More Examples}
+  \centering
+  \includegraphics[height=0.72\textheight]{patch_71_moment_network_inference.png}
+
+  \vspace{0.4em}
+  \small
+  These plots are visual baselines for the corrected two-network run.
+\end{frame}
+
+\begin{frame}{Previous Version: More Examples}
+  \centering
+  \includegraphics[height=0.72\textheight]{patch_172_moment_network_inference.png}
+
+  \vspace{0.4em}
+  \small
+  After retraining, the same plotting script can compare independent Q/U uncertainty maps.
+\end{frame}
+
+\begin{frame}{Current Status}
+  \begin{itemize}
+    \item Dataset generation is complete for all patches.
+    \item Previous joint-network results exposed a Q/U uncertainty coupling issue.
+    \item Training has been corrected to two independent Q/U networks.
+    \item Q and U training now runs in parallel on two GPUs.
+  \end{itemize}
+
+  \vspace{0.7em}
+  Main check after retraining:
+  \[
+    \sigma_Q(\data)
+    \quad\text{and}\quad
+    \sigma_U(\data)
+  \]
+  should no longer share an artificial common morphology.
+\end{frame}
+
+\end{document}

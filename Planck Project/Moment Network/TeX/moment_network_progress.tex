@@ -1,0 +1,354 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
+
+\title{Planck Moment Network: Current Design and Implementation}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Final Goal}
+
+The final goal is to train one shared neural network using the
+component-separated Planck patches produced by
+\texttt{Planck Project/compsep\_planck.py}.
+
+Each Planck patch is treated as a realization drawn from a common underlying
+distribution.  For every patch, the component-separated Q and U maps are used
+as reference clean maps.  Additional clean maps are synthesized from their
+scattering statistics, contaminated with nuisance realizations belonging to
+the same patch, and used to form supervised training pairs:
+
+\begin{equation}
+  \mathrm{input} = \mathrm{synthetic\ clean\ map} + \mathrm{same\mbox{-}patch\ nuisance},
+\end{equation}
+
+\begin{equation}
+  \mathrm{target} = \mathrm{synthetic\ clean\ map}.
+\end{equation}
+
+The training pairs from all patches will eventually be pooled to train a
+single shared moment network.  At inference time, this network should produce
+posterior moment maps, particularly posterior mean maps, for every patch.
+These final maps must have the same spatial dimensions as the original Planck
+patches.
+
+\section{Relevant Existing Code}
+
+The implementation was developed after examining:
+
+\begin{itemize}
+  \item \texttt{STL\_main/}, especially \texttt{Synthesis.py},
+        \texttt{ST\_Operator.py}, and the FFT and kernel data classes;
+  \item \texttt{Planck Project/compsep\_planck.py};
+  \item \texttt{Moment Networks Main/};
+  \item \texttt{Moment Networks Pierre/}; and
+  \item \texttt{moment\_network\_notes.txt}.
+\end{itemize}
+
+The current \texttt{STL\_main/Synthesis.py} exposes
+\texttt{optimize\_from\_maps} and \texttt{synthesize\_from\_maps}.  The older
+Moment Network scripts import an older symbol named
+\texttt{optimize\_scattering\_LBFGS}, which is not present in the current
+checkout.  The new implementation therefore uses
+\texttt{optimize\_from\_maps}.
+
+\section{Current Files}
+
+The current implementation is located in:
+
+\begin{lstlisting}
+Planck Project/Moment Network/
+    make_dataset.py
+    make_dataset.sbatch
+\end{lstlisting}
+
+\texttt{make\_dataset.py} performs synthesis, augmentation, nuisance addition,
+and per-patch dataset-shard creation.  It does not yet train the final shared
+moment network.
+
+\texttt{make\_dataset.sbatch} launches the dataset generation on a NERSC GPU
+node.  Its parameters are written explicitly in the \texttt{export} section so
+that a run's configuration can be read and changed directly in the file.
+
+\section{Input Discovery}
+
+Component-separation results are discovered from:
+
+\begin{lstlisting}
+/pscratch/sd/a/atsouros/STL/planck_results/version_2
+\end{lstlisting}
+
+The directory contains one NumPy result and one JSON metadata file per patch,
+with names such as:
+
+\begin{lstlisting}
+p0_m384_fft_f64_...npy
+p0_m384_fft_f64_...json
+\end{lstlisting}
+
+The patch identifier is parsed from the filename.  The corresponding JSON file
+is used to recover the scattering-transform configuration used by the
+component-separation run.
+
+Patches can be selected with \texttt{PATCH\_LIST}.  Accepted examples include:
+
+\begin{lstlisting}
+export PATCH_LIST="0"
+export PATCH_LIST="0,1,2"
+export PATCH_LIST="0-15"
+\end{lstlisting}
+
+\section{PBC Strategy}
+
+\subsection{Original patches}
+
+The real Planck patches are not periodic.  Their component-separation metadata
+therefore records \texttt{pbc=False}.  The target scattering statistics are
+computed using this original non-periodic configuration.
+
+\subsection{Periodic synthesis}
+
+The synthetic running maps are generated with:
+
+\begin{lstlisting}
+export SYNTHESIS_PBC="1"
+export SYNTHESIS_RUNNING_SHAPE="400"
+\end{lstlisting}
+
+Thus, a typical synthesis currently uses:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Object & Shape & Boundary condition \\
+\midrule
+Component-separated target & $384 \times 384$ & non-periodic \\
+Running synthetic map & $400 \times 400$ & periodic \\
+Final training pair & $384 \times 384$ & cropped from larger map \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The larger periodic map permits periodic augmentation operations without
+placing the periodic boundary directly inside the final training image.
+Augmentation is performed on the larger synthetic map, after which its central
+region is cropped back to the original patch dimensions.  Same-patch nuisance
+maps are added only after this final crop.
+
+\section{Augmentation}
+
+The augmentation follows the existing Moment Network implementations:
+
+\begin{itemize}
+  \item four rotations;
+  \item optional horizontal flip; and
+  \item periodic translations using \texttt{torch.roll}.
+\end{itemize}
+
+Periodic rolling is appropriate for the larger periodic synthetic map.  The
+rolled map is cropped back to the target patch size before nuisance addition.
+The real nuisance maps are therefore not periodically rolled.
+
+The current test configuration uses:
+
+\begin{lstlisting}
+export N_AUGMENTATIONS="8"
+export SHIFT_STEP="16"
+\end{lstlisting}
+
+The number of augmentations can later be increased to 64, matching the earlier
+Moment Network implementations.
+
+\section{Power-Spectrum Constraint}
+
+Initially, synthesis inherited the component-separation metadata setting
+\texttt{st\_compute\_ps=True}.  When the running synthesis size was changed
+from $384 \times 384$ to $400 \times 400$, this caused a normalization failure.
+
+The number of default power-spectrum bins depends on map size:
+
+\begin{equation}
+  n_{\mathrm{bins}} =
+  \mathrm{int}\left(2^{\log_2(\min(\mathrm{shape})) - 4}\right).
+\end{equation}
+
+Consequently:
+
+\begin{align}
+  384 \times 384 &\longrightarrow n_{\mathrm{bins}} = 24, \\
+  400 \times 400 &\longrightarrow n_{\mathrm{bins}} = 25.
+\end{align}
+
+The target operator stored power-spectrum normalization references with 24
+bins, while the running operator produced 25 bins.  PyTorch therefore raised:
+
+\begin{lstlisting}
+RuntimeError: The size of tensor a (25) must match
+the size of tensor b (24)
+\end{lstlisting}
+
+Two changes were made:
+
+\begin{enumerate}
+  \item The running operator is explicitly given the target operator's
+        \texttt{n\_bins}, ensuring compatibility if power-spectrum constraints
+        are enabled.
+  \item Power-spectrum constraints are disabled by default for the current
+        synthesis experiment:
+\end{enumerate}
+
+\begin{lstlisting}
+export SYNTHESIS_COMPUTE_PS="0"
+\end{lstlisting}
+
+The synthesis therefore currently matches scattering statistics without adding
+the power-spectrum terms to the loss.  Power-spectrum constraints can be
+restored later by setting \texttt{SYNTHESIS\_COMPUTE\_PS="1"}.
+
+\section{Current Dataset Generation}
+
+For each selected patch, the script currently:
+
+\begin{enumerate}
+  \item loads the component-separated Q and U maps;
+  \item loads the corresponding JSON metadata;
+  \item loads same-patch Q and U nuisance realizations;
+  \item synthesizes Q and U independently on $400 \times 400$ periodic maps;
+  \item augments the larger periodic synthetic maps;
+  \item center-crops augmented maps back to the original patch size;
+  \item adds a randomly selected same-patch nuisance realization; and
+  \item saves one compressed NumPy dataset shard for the patch.
+\end{enumerate}
+
+The current small-run settings are:
+
+\begin{lstlisting}
+export PATCH_LIST="0"
+export PATCH_LIMIT="1"
+export SYNTHESES_PER_PATCH="10"
+export SYNTHESIS_BATCH_SIZE="5"
+export SYNTHESIS_MAX_ITER="100"
+export SYNTHESIS_PBC="1"
+export SYNTHESIS_COMPUTE_PS="0"
+export SYNTHESIS_RUNNING_SHAPE="400"
+export N_AUGMENTATIONS="8"
+\end{lstlisting}
+
+\section{Saved Dataset Keys}
+
+Each compressed \texttt{.npz} shard currently contains:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Key & Contents \\
+\midrule
+\texttt{xq} & augmented/cropped clean Q targets \\
+\texttt{yq} & contaminated Q inputs \\
+\texttt{xu} & augmented/cropped clean U targets \\
+\texttt{yu} & contaminated U inputs \\
+\texttt{sq} & Q syntheses cropped to final patch size \\
+\texttt{su} & U syntheses cropped to final patch size \\
+\texttt{rq} & raw Q syntheses at running synthesis size \\
+\texttt{ru} & raw U syntheses at running synthesis size \\
+\texttt{p} & patch identifier \\
+\texttt{stem} & source component-separation run stem \\
+\texttt{naug} & number of augmentations \\
+\texttt{shift} & periodic-roll shift step \\
+\texttt{aug} & augmentation description \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A separate JSON summary is also written for each patch.
+
+\section{Slurm and Cluster Environment}
+
+The scripts are expected to be located on the cluster at:
+
+\begin{lstlisting}
+/pscratch/sd/a/atsouros/STL/Moment Network
+\end{lstlisting}
+
+The repository root used for importing \texttt{STL\_main} is:
+
+\begin{lstlisting}
+/pscratch/sd/a/atsouros/STL
+\end{lstlisting}
+
+The sbatch file uses the NERSC account and GPU configuration already used by
+the Planck component-separation scripts:
+
+\begin{lstlisting}
+#SBATCH -A mp107d_g
+#SBATCH --constraint=gpu&hbm80g
+#SBATCH --qos=debug
+#SBATCH --gpus-per-task=1
+\end{lstlisting}
+
+The log filenames are fixed:
+
+\begin{lstlisting}
+#SBATCH --output=mn_dataset.log
+#SBATCH --error=mn_dataset.err
+\end{lstlisting}
+
+The default system Python versions on the login node are too old:
+
+\begin{lstlisting}
+python  --version  # Python 2.7.18
+python3 --version  # Python 3.6.15
+\end{lstlisting}
+
+The sbatch file therefore loads and activates the existing \texttt{cmbenv}
+environment before invoking \texttt{python3}.  Unbound-variable checking is
+temporarily disabled during environment activation because the conda activation
+scripts reference variables that may initially be unset.
+
+\section{Work Still Required}
+
+The current implementation only creates per-patch dataset shards.  The
+following stages are still required:
+
+\begin{enumerate}
+  \item create a pooled or lazy dataset loader over all patch shards;
+  \item define train and validation splits, including held-out-patch
+        validation;
+  \item train one shared Q network and one shared U network, or evaluate a
+        joint two-channel Q/U network;
+  \item run inference on every original observed patch;
+  \item save posterior mean and posterior standard-deviation maps as
+        full-size \texttt{.npy} files; and
+  \item evaluate full-map and boundary-sensitive metrics.
+\end{enumerate}
+
+\section{Important Validation Considerations}
+
+Randomly splitting augmented samples can place samples originating from the
+same patch in both training and validation sets.  This is useful for monitoring
+optimization but does not measure generalization to unseen patches.  A
+held-out-patch validation split should therefore be used in addition to any
+random sample split.
+
+The effect of periodic synthesis should also be evaluated.  Although the final
+training maps are cropped from larger periodic maps, comparisons should be made
+between full-map metrics and interior-region metrics to detect remaining
+boundary effects.
+
+\end{document}

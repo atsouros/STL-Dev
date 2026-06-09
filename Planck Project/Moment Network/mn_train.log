@@ -1,0 +1,27 @@
+pwd=/pscratch/sd/a/atsouros/STL/Moment Network
+host=nid008265
+python3=/pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/bin/python3
+Python 3.12.12
+start=Mon Jun  8 01:59:46 AM PDT 2026
+DATASET_DIR=/pscratch/sd/a/atsouros/STL/moment_network_dataset/version_2
+OUTPUT_DIR=/pscratch/sd/a/atsouros/STL/moment_network_training/timing_test
+PATCH_LIST=0-191
+EXPECTED_PATCH_COUNT=192
+BATCH_SIZE=8
+NUM_WORKERS=4
+N_EPOCHS_MEAN=1
+N_EPOCHS_FULL=1
+MAX_TRAIN_BATCHES=100
+MAX_VAL_BATCHES=25
+NORMALIZE=0
+device=cuda
+dataset_dir=/pscratch/sd/a/atsouros/STL/moment_network_dataset/version_2
+output_dir=/pscratch/sd/a/atsouros/STL/moment_network_training/timing_test
+patch_files=192 train_files=173 val_files=19
+batch_size=8 workers=4
+epochs_mean=1 epochs_full=1
+[mean] epoch=0001 train=7.378073e-02 val=8.826829e-03
+[full] epoch=0002 train=-4.581772e-02 val=-1.153916e-01 new_best
+Saved final model to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_test/models/moment_network_joint_final.pth
+Saved summary to /pscratch/sd/a/atsouros/STL/moment_network_training/timing_test/training_summary.json
+end=Mon Jun  8 02:00:12 AM PDT 2026
