@@ -1,0 +1,842 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=0.65in]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+
+\setlist[itemize]{leftmargin=1.4em,itemsep=0.2em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.6em,itemsep=0.2em,topsep=0.2em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+\newcommand{\data}{d}
+\newcommand{\signal}{s}
+\newcommand{\synth}{s'}
+\newcommand{\target}{\tilde{s}}
+\newcommand{\net}{f_\theta}
+\newcommand{\mean}{\mu}
+\newcommand{\logvar}{\ell}
+\newcommand{\std}{\sigma}
+\newcommand{\pix}{r}
+\newcommand{\chan}{c}
+\newcommand{\grid}{\Omega}
+\newcommand{\batch}{\mathcal{B}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+
+\title{Moment Network Training: Legacy Std Calculation and Current Variant}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Notation and Data}
+
+The legacy scripts are
+\[
+  \texttt{train\_network\_old.py},
+  \qquad
+  \texttt{train\_network\_old.sbatch}.
+\]
+The training set is made of synthetic pairs
+\[
+  \{(\data_i,\synth_i)\}_{i=1}^N,
+\]
+where each example contains two polarization channels on the same pixel grid
+\(\grid\):
+\[
+  \data_i =
+  \begin{pmatrix}
+    d_{i,Q}\\ d_{i,U}
+  \end{pmatrix}
+  \in \R^{2\times 384\times 384},
+  \qquad
+  \synth_i =
+  \begin{pmatrix}
+    s'_{i,Q}\\ s'_{i,U}
+  \end{pmatrix}
+  \in \R^{2\times 384\times 384}.
+\]
+Here \(d\) is the contaminated/simulated observed map and \(s'\) is the clean
+synthetic target map.  The target \(s'\) is drawn from the synthesis procedure
+for the component-separated patch, then paired with a nuisance realization.
+
+The legacy run uses all patches jointly:
+\[
+  p = 0,\ldots,191,
+  \qquad
+  \texttt{TRAIN\_FRACTION}=0.9,
+  \qquad
+  \texttt{N\_EPOCHS\_MEAN}=10,
+  \qquad
+  \texttt{N\_EPOCHS\_FULL}=90.
+\]
+
+\section{Normalization}
+
+Before the network sees the data, both inputs and targets are standardized
+channel-by-channel.  Let
+\[
+  m^{d}_{\chan},\; a^{d}_{\chan}
+  \quad\text{and}\quad
+  m^{s}_{\chan},\; a^{s}_{\chan},
+  \qquad \chan\in\{Q,U\},
+\]
+be the empirical training-set mean and standard deviation for the data and
+target channels.  The code computes these over all selected training files,
+all augmentations, all syntheses, and all pixels.
+
+The normalized tensors are
+\[
+  y_{i,\chan,\pix}
+  =
+  \frac{
+    d_{i,\chan,\pix}-m^{d}_{\chan}
+  }{
+    a^{d}_{\chan}
+  },
+  \qquad
+  x_{i,\chan,\pix}
+  =
+  \frac{
+    s'_{i,\chan,\pix}-m^{s}_{\chan}
+  }{
+    a^{s}_{\chan}
+  }.
+\]
+The network is trained in normalized units.  If it predicts a normalized mean
+\(\widehat{\mean}_{\chan,\pix}\) and normalized standard deviation
+\(\widehat{\std}_{\chan,\pix}\), the corresponding physical maps are
+\[
+  \mean_{\chan,\pix}
+  =
+  a^s_{\chan}\widehat{\mean}_{\chan,\pix}+m^s_{\chan},
+  \qquad
+  \std_{\chan,\pix}
+  =
+  a^s_{\chan}\widehat{\std}_{\chan,\pix}.
+\]
+
+\section{Legacy Network Parameterization}
+
+The legacy code uses one shared U-Net
+\[
+  \net:\R^{2\times 384\times 384}
+  \longrightarrow
+  \R^{4\times 384\times 384}.
+\]
+Given normalized input \(y_i\), the four output channels are interpreted as
+\[
+  \net(y_i)
+  =
+  \left(
+    \widehat{\mean}_{i,Q},
+    \widehat{\mean}_{i,U},
+    \widehat{\logvar}_{i,Q},
+    \widehat{\logvar}_{i,U}
+  \right).
+\]
+Equivalently, for each channel \(\chan\in\{Q,U\}\) and pixel
+\(\pix\in\grid\),
+\[
+  \widehat{\mean}_{i,\chan,\pix}
+  =
+  [\net(y_i)]_{\chan,\pix},
+  \qquad
+  \widehat{\logvar}_{i,\chan,\pix}
+  =
+  [\net(y_i)]_{\chan+2,\pix}.
+\]
+The variance is parameterized through the log-variance:
+\[
+  \widehat{\std}_{i,\chan,\pix}^2
+  =
+  \exp\!\left(\widehat{\logvar}_{i,\chan,\pix}\right).
+\]
+The code clamps the log-variance before using it:
+\[
+  \widehat{\logvar}
+  \leftarrow
+  \operatorname{clip}(\widehat{\logvar},-12,12).
+\]
+This prevents numerically extreme variances.
+
+\section{Legacy Stage 1: Mean Pretraining}
+
+During the first stage, the same 4-output network is used, but only the first
+two output channels enter the loss.  The log-variance channels are produced by
+the network but ignored by the objective.
+
+For a mini-batch \(\batch\), the loss is
+\[
+  \mathcal{L}_{\rm mean}(\theta)
+  =
+  \frac{1}{|\batch|\,2\,|\grid|}
+  \sum_{i\in\batch}
+  \sum_{\chan\in\{Q,U\}}
+  \sum_{\pix\in\grid}
+  \left(
+    x_{i,\chan,\pix}
+    -
+    \widehat{\mean}_{\theta,\chan,\pix}(y_i)
+  \right)^2 .
+\]
+This is an empirical conditional mean regression problem.  If the network class
+and optimization were ideal, the minimizer would satisfy
+\[
+  \widehat{\mean}_{\theta}(y)
+  \approx
+  \E[x\mid y].
+\]
+
+\textbf{Important:} after this stage, the mean is not frozen in the legacy
+script.  It is merely initialized by the MSE stage.
+
+\section{Legacy Stage 2: Gaussian NLL}
+
+In the second stage, the legacy script continues training the \emph{same}
+network and the \emph{same} optimizer.  Now all four outputs enter the loss.
+The code implements
+\[
+  \mathcal{L}_{\rm NLL}(\theta)
+  =
+  \frac{1}{|\batch|\,2\,|\grid|}
+  \sum_{i\in\batch}
+  \sum_{\chan\in\{Q,U\}}
+  \sum_{\pix\in\grid}
+  \frac{1}{2}
+  \left[
+    \widehat{\logvar}_{\theta,\chan,\pix}(y_i)
+    +
+    \frac{
+      \left(
+        x_{i,\chan,\pix}
+        -
+        \widehat{\mean}_{\theta,\chan,\pix}(y_i)
+      \right)^2
+    }{
+      \exp\!\left(
+        \widehat{\logvar}_{\theta,\chan,\pix}(y_i)
+      \right)
+    }
+  \right],
+\]
+with the numerical modifications
+\[
+  \widehat{\logvar}
+  \mapsto
+  \operatorname{clip}(\widehat{\logvar},-12,12),
+  \qquad
+  \exp(\widehat{\logvar})
+  \mapsto
+  \max\{\exp(\widehat{\logvar}),10^{-8}\}.
+\]
+
+This is the negative log-likelihood of a diagonal Gaussian model in normalized
+space:
+\[
+  x_{i,\chan,\pix}\mid y_i
+  \sim
+  \mathcal{N}
+  \left(
+    \widehat{\mean}_{\theta,\chan,\pix}(y_i),
+    \exp\!\left[\widehat{\logvar}_{\theta,\chan,\pix}(y_i)\right]
+  \right),
+\]
+where the covariance is diagonal over pixels and channels.  Thus, the std map
+is a map of \emph{per-pixel marginal} posterior standard deviations, not a full
+posterior covariance.
+
+\section{What the Legacy Std Is Optimizing}
+
+For a fixed input \(y_i\), channel \(\chan\), and pixel \(\pix\), define the
+normalized residual
+\[
+  r_{i,\chan,\pix}(\theta)
+  =
+  x_{i,\chan,\pix}
+  -
+  \widehat{\mean}_{\theta,\chan,\pix}(y_i),
+  \qquad
+  v_{i,\chan,\pix}(\theta)
+  =
+  \exp\!\left[
+    \widehat{\logvar}_{\theta,\chan,\pix}(y_i)
+  \right].
+\]
+The local NLL contribution is
+\[
+  \ell_{\rm NLL}
+  =
+  \frac{1}{2}
+  \left[
+    \log v
+    +
+    \frac{r^2}{v}
+  \right].
+\]
+If \(r\) is treated as fixed and we optimize only \(v\), then
+\[
+  \frac{\partial \ell_{\rm NLL}}{\partial v}
+  =
+  \frac{1}{2}
+  \left(
+    \frac{1}{v}
+    -
+    \frac{r^2}{v^2}
+  \right).
+\]
+Setting this derivative to zero gives
+\[
+  v^\star = r^2.
+\]
+Equivalently,
+\[
+  \widehat{\logvar}^{\,\star}
+  =
+  \log r^2.
+\]
+
+This calculation explains the basic pressure on the std head: for fixed mean,
+the Gaussian NLL wants the predicted variance to match the squared residual.
+However, the legacy script does \emph{not} keep the mean fixed in stage 2.
+Both
+\[
+  \widehat{\mean}_{\theta}
+  \quad\text{and}\quad
+  \widehat{\logvar}_{\theta}
+\]
+are functions of the same parameters \(\theta\), and the optimizer updates all
+of them during the NLL stage.
+
+\section{Why the Legacy Mean Can Change in Stage 2}
+
+The gradient of the local NLL with respect to the mean is
+\[
+  \frac{\partial \ell_{\rm NLL}}{\partial \widehat{\mean}}
+  =
+  \frac{
+    \widehat{\mean}-x
+  }{
+    v
+  }.
+\]
+Thus, residuals in pixels with small predicted variance are weighted more
+strongly.  The second stage therefore no longer solves ordinary MSE regression.
+Instead, it solves a heteroscedastic weighted regression problem coupled to a
+variance model:
+\[
+  \theta_{\rm full}
+  =
+  \arg\min_{\theta}
+  \mathcal{L}_{\rm NLL}(\theta).
+\]
+The final legacy mean is therefore not necessarily the same as the stage-1 MSE
+mean:
+\[
+  \widehat{\mean}_{\theta_{\rm full}}
+  \neq
+  \widehat{\mean}_{\theta_{\rm mean-stage}}
+  \quad\text{in general}.
+\]
+This is the key point for interpreting the legacy std maps.  The legacy
+variance is not trained against residuals of a frozen posterior mean.  It is
+trained simultaneously with a mean that can move during the NLL stage.
+
+\section{Interpretation of the Legacy Std Map}
+
+The legacy std map represents
+\[
+  \widehat{\std}_{\theta,\chan,\pix}(d)
+  =
+  a^s_{\chan}
+  \exp\!\left(
+    \frac{1}{2}
+    \widehat{\logvar}_{\theta,\chan,\pix}(y)
+  \right),
+\]
+where \(y\) is the normalized version of \(d\).  Mathematically, this is a
+diagonal approximation to
+\[
+  \operatorname{Std}\!\left[
+    s_{\chan,\pix}\mid d
+  \right].
+\]
+It is \emph{not}
+\[
+  \operatorname{Cov}(s_{\chan,\pix},s_{\chan',\pix'}\mid d),
+\]
+and it does not describe correlations across pixels or between \(Q\) and \(U\).
+
+It is important to distinguish two different notions of ``separation''.  The
+legacy NLL is channel-separated in the sense that it can be written as
+\[
+  \mathcal{L}_{\rm NLL}
+  =
+  \mathcal{L}_{Q}
+  +
+  \mathcal{L}_{U},
+\]
+with one Gaussian likelihood term for \(Q\) and one for \(U\).  However, the
+\emph{function class} is not channel-separated.  The same U-Net trunk produces
+the features used by both log-variance maps:
+\[
+  (d_Q,d_U)
+  \xrightarrow{\text{shared trunk}}
+  z_\theta(d_Q,d_U)
+  \xrightarrow{\text{final }1\times1\text{ convolution}}
+  \left(
+    \log \std_Q^2,
+    \log \std_U^2
+  \right).
+\]
+At a given pixel \(\pix\), this is approximately a channel-specific linear
+projection of the same shared feature vector:
+\[
+  \widehat{\logvar}_{Q,\pix}
+  =
+  a_Q^\top z_{\theta,\pix} + b_Q,
+  \qquad
+  \widehat{\logvar}_{U,\pix}
+  =
+  a_U^\top z_{\theta,\pix} + b_U.
+\]
+The vectors \(a_Q\) and \(a_U\) are different, but the spatial feature map
+\(z_{\theta,\pix}\) is common.  Therefore, if the trunk learns a feature such
+as
+\[
+  z_{1,\theta,\pix}
+  \approx
+  \text{local residual or noise amplitude at pixel }\pix,
+\]
+then both log-variance heads may primarily use this same feature:
+\[
+  \widehat{\logvar}_{Q,\pix}
+  \approx
+  \alpha_Q z_{1,\theta,\pix}+\beta_Q,
+  \qquad
+  \widehat{\logvar}_{U,\pix}
+  \approx
+  \alpha_U z_{1,\theta,\pix}+\beta_U.
+\]
+Even if \(\alpha_Q\neq \alpha_U\), the bright and dark regions of the two std
+maps will be similar because both are functions of the same spatial template
+\(z_{1,\theta,\pix}\).  The two maps may differ in amplitude while remaining
+strongly correlated morphologically.
+
+There is also a statistical reason why similarity can occur.  The variance is
+driven by residual power.  For a fixed or slowly varying mean, the local NLL
+pushes
+\[
+  \widehat{\std}_{Q,\pix}^2(d)
+  \sim
+  \left(s'_{Q,\pix}-\widehat{\mean}_{Q,\pix}(d)\right)^2,
+  \qquad
+  \widehat{\std}_{U,\pix}^2(d)
+  \sim
+  \left(s'_{U,\pix}-\widehat{\mean}_{U,\pix}(d)\right)^2.
+\]
+If the residual-power fields
+\[
+  \left(s'_Q-\widehat{\mean}_Q(d)\right)^2
+  \quad\text{and}\quad
+  \left(s'_U-\widehat{\mean}_U(d)\right)^2
+\]
+are large in the same regions, then similar std morphology is not necessarily a
+network failure.  It may reflect shared patch geometry, common edge effects,
+common synthesis artifacts, the same nuisance realization structure, or the
+same non-stationarity across the patch.
+
+Thus, strong correlation between
+\[
+  \widehat{\std}_Q(d)
+  \quad\text{and}\quad
+  \widehat{\std}_U(d)
+\]
+can have two sources:
+\[
+  \text{architectural coupling through }z_\theta(d),
+  \qquad
+  \text{and/or}
+  \qquad
+  \text{similar residual-power targets}.
+\]
+Separating the std trunks would address only the architectural coupling.  If
+the residual-power targets are themselves similar, independent trunks could
+still learn similar std maps.
+
+\section{Latest Legacy-Style Variant: Separated Std Trunks}
+
+The latest variant keeps the legacy probabilistic objective, but changes the
+network parameterization used for the standard deviations.  The change is not a
+change in the likelihood.  It is a change in the function class.
+
+In the previous single-trunk legacy architecture, one U-Net produced all four
+posterior maps:
+\[
+  F_\theta(y)
+  =
+  \left(
+    \widehat{\mean}_{Q}(y),
+    \widehat{\mean}_{U}(y),
+    \widehat{\logvar}_{Q}(y),
+    \widehat{\logvar}_{U}(y)
+  \right).
+\]
+Thus the posterior means and posterior log-variances were all functions of the
+same learned representation:
+\[
+  y
+  \xrightarrow{\text{shared U-Net trunk}}
+  z_\theta(y)
+  \xrightarrow{\text{output head}}
+  \left(
+    \widehat{\mean}_{Q},
+    \widehat{\mean}_{U},
+    \widehat{\logvar}_{Q},
+    \widehat{\logvar}_{U}
+  \right).
+\]
+
+The latest legacy-style variant instead uses one mean trunk and two independent
+std trunks:
+\[
+  M_\theta(y)
+  =
+  \left(
+    \widehat{\mean}_{Q}(y),
+    \widehat{\mean}_{U}(y)
+  \right),
+\]
+\[
+  V_{\theta_Q}(y)
+  =
+  \widehat{\logvar}_{Q}(y),
+  \qquad
+  V_{\theta_U}(y)
+  =
+  \widehat{\logvar}_{U}(y).
+\]
+Equivalently, the full model is
+\[
+  F_{\theta,\theta_Q,\theta_U}(y)
+  =
+  \left(
+    M_\theta(y),
+    V_{\theta_Q}(y),
+    V_{\theta_U}(y)
+  \right),
+\]
+or, componentwise,
+\[
+  F_{\theta,\theta_Q,\theta_U}(y)
+  =
+  \left(
+    \widehat{\mean}_{Q}(y),
+    \widehat{\mean}_{U}(y),
+    \widehat{\logvar}_{Q}(y),
+    \widehat{\logvar}_{U}(y)
+  \right).
+\]
+
+The two-stage training structure remains legacy-like.  First, the mean trunk is
+trained by the MSE objective
+\[
+  \mathcal{L}_{\rm mean}(\theta)
+  =
+  \frac{1}{|\batch|\,2\,|\grid|}
+  \sum_{i\in\batch}
+  \sum_{\chan\in\{Q,U\}}
+  \sum_{\pix\in\grid}
+  \left[
+    x_{i,\chan,\pix}
+    -
+    \widehat{\mean}_{\theta,\chan,\pix}(y_i)
+  \right]^2.
+\]
+Then the full model is trained with the same diagonal Gaussian NLL as before:
+\[
+  \mathcal{L}_{\rm NLL}(\theta,\theta_Q,\theta_U)
+  =
+  \frac{1}{|\batch|\,2\,|\grid|}
+  \sum_{i\in\batch}
+  \sum_{\chan\in\{Q,U\}}
+  \sum_{\pix\in\grid}
+  \frac{1}{2}
+  \left[
+    \widehat{\logvar}_{\chan,\pix}(y_i)
+    +
+    \frac{
+      \left(
+        x_{i,\chan,\pix}
+        -
+        \widehat{\mean}_{\chan,\pix}(y_i)
+      \right)^2
+    }{
+      \exp\!\left(\widehat{\logvar}_{\chan,\pix}(y_i)\right)
+    }
+  \right].
+\]
+Here
+\[
+  \widehat{\logvar}_{Q}=V_{\theta_Q}(y),
+  \qquad
+  \widehat{\logvar}_{U}=V_{\theta_U}(y),
+\]
+while
+\[
+  (\widehat{\mean}_Q,\widehat{\mean}_U)=M_\theta(y).
+\]
+
+Therefore the difference between the previous legacy architecture and the
+latest variant is
+\[
+  \text{previous:}\qquad
+  (\widehat{\mean}_Q,\widehat{\mean}_U,
+   \widehat{\logvar}_Q,\widehat{\logvar}_U)
+  =
+  F_\theta(y),
+\]
+versus
+\[
+  \text{latest:}\qquad
+  (\widehat{\mean}_Q,\widehat{\mean}_U)=M_\theta(y),
+  \qquad
+  \widehat{\logvar}_Q=V_{\theta_Q}(y),
+  \qquad
+  \widehat{\logvar}_U=V_{\theta_U}(y).
+\]
+
+The likelihood is still factorized over channels and pixels:
+\[
+  p(x\mid y)
+  \approx
+  \prod_{\pix\in\grid}
+  p(x_{Q,\pix}\mid y)\,
+  p(x_{U,\pix}\mid y).
+\]
+Thus the std maps remain maps of per-pixel marginal posterior standard
+deviations:
+\[
+  \widehat{\std}_{Q,\pix}(d)
+  \approx
+  \operatorname{Std}[s_{Q,\pix}\mid d],
+  \qquad
+  \widehat{\std}_{U,\pix}(d)
+  \approx
+  \operatorname{Std}[s_{U,\pix}\mid d].
+\]
+The model still does not learn the full posterior covariance
+\[
+  \operatorname{Cov}(s_{\chan,\pix},s_{\chan',\pix'}\mid d).
+\]
+
+The purpose of the separated std trunks is to remove the architectural pressure
+that forces \(\widehat{\logvar}_Q\) and \(\widehat{\logvar}_U\) to be read out
+from the same trunk representation \(z_\theta(y)\).  The Q std map now has its
+own parameters \(\theta_Q\), and the U std map has its own parameters
+\(\theta_U\).  This gives the two uncertainty maps more independent degrees of
+freedom.  It does not, however, force them to be different: if the Q and U
+residual-power fields are statistically similar, the independently trained
+trunks may still learn morphologically similar std maps.
+
+\section{Current Version: Fixed Legacy Mean and New Std Network}
+
+The current version introduces a different factorization.  There are two
+networks:
+\[
+  g_\phi(y)
+  =
+  \widehat{\mean}_{\phi}(y)
+  \in \R^{2\times384\times384},
+  \qquad
+  h_\psi(y)
+  =
+  \widehat{\logvar}_{\psi}(y)
+  \in \R^{2\times384\times384}.
+\]
+In the specific current run using the legacy mean,
+\[
+  g_\phi
+\]
+is initialized from
+\[
+  \texttt{version\_2/models/moment\_network\_joint\_final.pth}.
+\]
+The old legacy checkpoint had four outputs:
+\[
+  (\widehat{\mean}_Q,\widehat{\mean}_U,
+    \widehat{\logvar}_Q,\widehat{\logvar}_U).
+\]
+The current script copies only the first two output channels:
+\[
+  g_\phi(y)
+  =
+  \left[
+    f_{\theta_{\rm legacy}}(y)
+  \right]_{0:2}.
+\]
+The old legacy log-variance channels are discarded.
+
+The sbatch sets
+\[
+  \texttt{N\_EPOCHS\_MEAN}=0,
+  \qquad
+  \texttt{N\_EPOCHS\_FULL}=90,
+  \qquad
+  \texttt{USE\_INTENSITY}=0.
+\]
+Therefore no mean training is run in the current job.  During std training,
+the code evaluates
+\[
+  \widehat{\mean}_{\phi}(y_i)
+\]
+inside a \(\texttt{torch.no\_grad()}\) block, and the optimizer is applied only
+to the parameters \(\psi\) of \(h_\psi\).  Hence
+\[
+  \phi \quad\text{is fixed during the std stage}.
+\]
+
+\section{Current Std Objective}
+
+The current std stage does not use the Gaussian NLL directly.  Instead, with
+the fixed mean \(g_\phi\), it defines a residual target
+\[
+  R_{i,\chan,\pix}
+  =
+  \left(
+    x_{i,\chan,\pix}
+    -
+    \widehat{\mean}_{\phi,\chan,\pix}(y_i)
+  \right)^2,
+\]
+then forms
+\[
+  T_{i,\chan,\pix}
+  =
+  \log\left(
+    \max\{R_{i,\chan,\pix},\epsilon\}
+  \right),
+  \qquad
+  \epsilon=\texttt{RESIDUAL\_FLOOR}=10^{-8}.
+\]
+The variance network predicts
+\[
+  \widehat{\logvar}_{\psi,\chan,\pix}(y_i)
+  =
+  h_{\psi,\chan,\pix}(y_i),
+\]
+clamped to \([-12,12]\), and the loss is
+\[
+  \mathcal{L}_{\rm std}(\psi)
+  =
+  \frac{1}{|\batch|\,2\,|\grid|}
+  \sum_{i\in\batch}
+  \sum_{\chan\in\{Q,U\}}
+  \sum_{\pix\in\grid}
+  \left[
+    \operatorname{clip}
+    \left(
+      h_{\psi,\chan,\pix}(y_i),-12,12
+    \right)
+    -
+    \operatorname{clip}
+    \left(
+      T_{i,\chan,\pix},-12,12
+    \right)
+  \right]^2.
+\]
+Thus, the current run is a direct regression onto the log squared residuals of
+the fixed mean model:
+\[
+  h_\psi(y)
+  \approx
+  \log\left[
+    \left(x-g_\phi(y)\right)^2
+  \right].
+\]
+
+\section{Main Difference}
+
+The mathematical distinction is:
+\[
+\begin{array}{lll}
+\toprule
+ & \text{Legacy} & \text{Current legacy-mean/std run} \\
+\midrule
+\text{Mean model} &
+\text{same network as std} &
+\text{loaded from legacy checkpoint} \\
+\text{Mean during std training} &
+\text{updated by NLL} &
+\text{fixed} \\
+\text{Std model} &
+\text{channels 2:4 of same network} &
+\text{separate U-Net} \\
+\text{Std objective} &
+\text{Gaussian NLL} &
+\text{MSE on log squared residuals} \\
+\text{Input channels} &
+(d_Q,d_U) &
+(d_Q,d_U) \\
+\bottomrule
+\end{array}
+\]
+
+In compact form, the legacy full stage solves
+\[
+  \min_{\theta}
+  \sum_{i,\chan,\pix}
+  \frac{1}{2}
+  \left[
+    \widehat{\logvar}_{\theta}
+    +
+    \frac{
+      (x-\widehat{\mean}_{\theta})^2
+    }{
+      \exp(\widehat{\logvar}_{\theta})
+    }
+  \right],
+\]
+whereas the current legacy-mean/std run solves
+\[
+  \min_{\psi}
+  \sum_{i,\chan,\pix}
+  \left[
+    h_\psi(y_i)
+    -
+    \log
+    \left(
+      (x_i-g_\phi(y_i))^2
+    \right)
+  \right]^2,
+  \qquad
+  \phi \text{ fixed}.
+\]
+
+\section{Practical Consequence}
+
+If the goal is to keep the legacy mean exactly as the reference mean and only
+modify the uncertainty model, the current setup is closer to that goal:
+\[
+  \widehat{\mean}_{\rm current}(d)
+  =
+  \widehat{\mean}_{\rm legacy}(d),
+  \qquad
+  \text{only } \widehat{\std}(d) \text{ is newly trained}.
+\]
+In the checked local outputs, the normalization statistics of
+\(\texttt{version\_2}\) and
+\(\texttt{version\_2\_qu\_legacymean\_std}\) match exactly, so the copied
+legacy mean is evaluated in the same normalized coordinates.
+
+However, the std objective is no longer the same as the legacy NLL.  It is a
+direct regression to log residual power.  This makes the interpretation clearer
+for the fixed-mean experiment, but it is not mathematically identical to the
+joint maximum-likelihood training used by the legacy script.
+
+\end{document}

@@ -8,7 +8,6 @@ import math
 import os
 import re
 import sys
-import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -159,21 +158,12 @@ def save_stats(path: Path, stats: ChannelStats) -> None:
     )
 
 
-def wait_for_file(path: Path, *, timeout_s: int = 1800, poll_s: float = 5.0) -> None:
-    deadline = time.time() + timeout_s
-    while not path.exists():
-        if time.time() > deadline:
-            raise TimeoutError(f"Timed out waiting for {path}")
-        time.sleep(poll_s)
-
-
 class MomentPatchIterableDataset(IterableDataset):
     def __init__(
         self,
         files: list[Path],
         *,
         stats: ChannelStats,
-        channel: int,
         seed: int,
         shuffle_files: bool,
         shuffle_samples: bool,
@@ -181,7 +171,6 @@ class MomentPatchIterableDataset(IterableDataset):
         super().__init__()
         self.files = list(files)
         self.stats = stats
-        self.channel = int(channel)
         self.seed = int(seed)
         self.shuffle_files = bool(shuffle_files)
         self.shuffle_samples = bool(shuffle_samples)
@@ -204,16 +193,15 @@ class MomentPatchIterableDataset(IterableDataset):
         if self.shuffle_files:
             files = [files[i] for i in rng.permutation(len(files))]
 
-        stokes = "q" if self.channel == 0 else "u"
-        input_mean = float(self.stats.input_mean[self.channel])
-        input_std = float(self.stats.input_std[self.channel])
-        target_mean = float(self.stats.target_mean[self.channel])
-        target_std = float(self.stats.target_std[self.channel])
+        input_mean = self.stats.input_mean[None, :, None, None]
+        input_std = self.stats.input_std[None, :, None, None]
+        target_mean = self.stats.target_mean[None, :, None, None]
+        target_std = self.stats.target_std[None, :, None, None]
 
         for path in files:
             with np.load(path) as data:
-                x = data[f"x{stokes}"].astype(np.float32, copy=False)
-                y = data[f"y{stokes}"].astype(np.float32, copy=False)
+                x = np.stack([data["xq"], data["xu"]], axis=1).astype(np.float32, copy=False)
+                y = np.stack([data["yq"], data["yu"]], axis=1).astype(np.float32, copy=False)
 
             x = (x - target_mean) / target_std
             y = (y - input_mean) / input_std
@@ -221,7 +209,7 @@ class MomentPatchIterableDataset(IterableDataset):
             if self.shuffle_samples:
                 rng.shuffle(order)
             for idx in order:
-                yield torch.from_numpy(y[idx][None]), torch.from_numpy(x[idx][None])
+                yield torch.from_numpy(y[idx]), torch.from_numpy(x[idx])
 
 
 class ConvGN(nn.Module):
@@ -239,7 +227,7 @@ class ConvGN(nn.Module):
 
 
 class LSSUNet(nn.Module):
-    def __init__(self, in_channels: int = 1, out_channels: int = 2):
+    def __init__(self, in_channels: int = 2, out_channels: int = 4):
         super().__init__()
         self.c1 = ConvGN(in_channels, 16)
         self.p1 = nn.AvgPool2d(2)
@@ -274,20 +262,10 @@ class LSSUNet(nn.Module):
         return self.final(b9)
 
 
-def gaussian_nll(target: torch.Tensor, mean: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+def gaussian_nll(target: torch.Tensor, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
     logvar = logvar.clamp(min=-12.0, max=12.0)
     var = torch.exp(logvar).clamp_min(1e-8)
-    return (0.5 * (logvar + (target - mean) ** 2 / var)).mean()
-
-
-def moment_loss(target: torch.Tensor, output: torch.Tensor, stage: str) -> torch.Tensor:
-    mean = output[:, 0:1]
-    if stage == "mean":
-        return F.mse_loss(mean, target)
-    if stage == "full":
-        logvar = output[:, 1:2]
-        return gaussian_nll(target, mean, logvar)
-    raise ValueError(f"Unsupported stage: {stage}")
+    return (0.5 * (logvar + (target - mu) ** 2 / var)).mean()
 
 
 def train_epoch(
@@ -307,7 +285,14 @@ def train_epoch(
         x = x.to(device=device, non_blocking=True)
         optimizer.zero_grad(set_to_none=True)
         output = model(y)
-        loss = moment_loss(x, output, stage)
+        mu = output[:, 0:2]
+        if stage == "mean":
+            loss = F.mse_loss(mu, x)
+        elif stage == "full":
+            logvar = output[:, 2:4]
+            loss = gaussian_nll(x, mu, logvar)
+        else:
+            raise ValueError(f"Unsupported stage: {stage}")
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
@@ -334,7 +319,14 @@ def validate_epoch(
         y = y.to(device=device, non_blocking=True)
         x = x.to(device=device, non_blocking=True)
         output = model(y)
-        loss = moment_loss(x, output, stage)
+        mu = output[:, 0:2]
+        if stage == "mean":
+            loss = F.mse_loss(mu, x)
+        elif stage == "full":
+            logvar = output[:, 2:4]
+            loss = gaussian_nll(x, mu, logvar)
+        else:
+            raise ValueError(f"Unsupported stage: {stage}")
         running_loss += float(loss.item())
         n_batches += 1
         if max_batches is not None and n_batches >= max_batches:
@@ -361,7 +353,6 @@ def make_loader(
 def save_checkpoint(
     path: Path,
     *,
-    stokes: str,
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
     epoch: int,
@@ -382,11 +373,9 @@ def save_checkpoint(
             "epoch": int(epoch),
             "stage": stage,
             "best_val_loss": float(best_val_loss),
-            "stokes": stokes,
-            "input_channels": [f"{stokes}_contaminated"],
-            "target_channels": [f"{stokes}_clean"],
-            "output_channels": [f"{stokes}_mean", f"{stokes}_logvar"],
-            "posterior_parameterization": "gaussian_logvar",
+            "input_channels": ["Q_contaminated", "U_contaminated"],
+            "target_channels": ["Q_clean", "U_clean"],
+            "output_channels": ["Q_mean", "U_mean", "Q_logvar", "U_logvar"],
             "dataset_dir": str(args.dataset_dir),
             "train_files": [p.name for p in train_files],
             "val_files": [p.name for p in val_files],
@@ -414,18 +403,18 @@ def save_history(path: Path, train_losses: list[float], val_losses: list[float],
     )
 
 
-def cleanup_intermediate_checkpoints(checkpoint_dir: Path, stokes_lower: str) -> int:
+def cleanup_intermediate_checkpoints(checkpoint_dir: Path) -> int:
     if not checkpoint_dir.exists():
         return 0
     removed = 0
-    for path in sorted(checkpoint_dir.glob(f"moment_network_{stokes_lower}_epoch_*.pth")):
+    for path in sorted(checkpoint_dir.glob("moment_network_joint_epoch_*.pth")):
         path.unlink()
         removed += 1
     return removed
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train separate Q and U moment networks on generated Planck patch datasets.")
+    parser = argparse.ArgumentParser(description="Train one joint Q/U moment network on generated Planck patch datasets.")
     parser.add_argument("--dataset-dir", type=Path, default=Path(os.environ.get("DATASET_DIR", str(DEFAULT_DATASET_DIR))))
     parser.add_argument("--output-dir", type=Path, default=Path(os.environ.get("OUTPUT_DIR", str(DEFAULT_OUTPUT_DIR))))
     parser.add_argument("--patches", default=os.environ.get("PATCH_LIST", ""))
@@ -443,27 +432,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-val-batches", type=int, default=int(os.environ.get("MAX_VAL_BATCHES", "0")))
     parser.add_argument("--save-every", type=int, default=int(os.environ.get("SAVE_EVERY", "5")))
     parser.add_argument("--resume", type=Path, default=Path(os.environ["RESUME"]) if os.environ.get("RESUME") else None)
-    parser.add_argument("--stokes", default=os.environ.get("STOKES", "auto"))
     return parser.parse_args()
-
-
-def selected_stokes(value: str) -> list[tuple[str, int]]:
-    value = value.strip().upper()
-    if value in {"Q", "U"}:
-        return [(value, 0 if value == "Q" else 1)]
-    if value in {"BOTH", "ALL"}:
-        return [("Q", 0), ("U", 1)]
-    if value == "AUTO":
-        ntasks = int(os.environ.get("SLURM_NTASKS", "1"))
-        if ntasks <= 1:
-            return [("Q", 0), ("U", 1)]
-        rank = int(os.environ.get("SLURM_PROCID", "0"))
-        if rank == 0:
-            return [("Q", 0)]
-        if rank == 1:
-            return [("U", 1)]
-        return []
-    raise ValueError("STOKES must be Q, U, both, all, or auto")
 
 
 def main() -> None:
@@ -491,8 +460,6 @@ def main() -> None:
         )
     train_files, val_files = split_files(files, train_fraction=args.train_fraction, seed=args.seed)
 
-    rank = int(os.environ.get("SLURM_PROCID", "0"))
-    ntasks = int(os.environ.get("SLURM_NTASKS", "1"))
     stats_path = args.output_dir / "normalization_stats.npz"
     if args.normalize:
         if stats_path.exists():
@@ -505,33 +472,59 @@ def main() -> None:
             )
             print(f"Loaded normalization stats from {stats_path}", flush=True)
         else:
-            if ntasks > 1 and rank != 0:
-                print(f"Waiting for rank 0 to create normalization stats at {stats_path}", flush=True)
-                wait_for_file(stats_path)
-                loaded = np.load(stats_path)
-                stats = ChannelStats(
-                    input_mean=loaded["input_mean"].astype(np.float32),
-                    input_std=loaded["input_std"].astype(np.float32),
-                    target_mean=loaded["target_mean"].astype(np.float32),
-                    target_std=loaded["target_std"].astype(np.float32),
-                )
-                print(f"Loaded normalization stats from {stats_path}", flush=True)
-            else:
-                print("Computing normalization stats from training files", flush=True)
-                stats = compute_channel_stats(train_files)
-                save_stats(stats_path, stats)
-                print(f"Saved normalization stats to {stats_path}", flush=True)
+            print("Computing normalization stats from training files", flush=True)
+            stats = compute_channel_stats(train_files)
+            save_stats(stats_path, stats)
+            print(f"Saved normalization stats to {stats_path}", flush=True)
     else:
         stats = identity_channel_stats()
 
-    local_rank = int(os.environ.get("SLURM_LOCALID", "0"))
-    if torch.cuda.is_available():
-        device = torch.device(f"cuda:{local_rank % torch.cuda.device_count()}")
-    else:
-        device = torch.device("cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     pin_memory = device.type == "cuda"
+    train_dataset = MomentPatchIterableDataset(
+        train_files,
+        stats=stats,
+        seed=args.seed,
+        shuffle_files=True,
+        shuffle_samples=True,
+    )
+    val_dataset = MomentPatchIterableDataset(
+        val_files,
+        stats=stats,
+        seed=args.seed + 100000,
+        shuffle_files=False,
+        shuffle_samples=False,
+    )
+    train_loader = make_loader(train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=pin_memory)
+    val_loader = make_loader(val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=pin_memory)
+
+    model = LSSUNet(in_channels=2, out_channels=4).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+
+    train_losses: list[float] = []
+    val_losses: list[float] = []
+    stages: list[str] = []
+    best_val_loss = math.inf
+    start_epoch = 0
+
+    if args.resume is not None:
+        checkpoint = torch.load(args.resume.expanduser(), map_location=device)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        train_losses = [float(v) for v in checkpoint.get("train_losses", [])]
+        val_losses = [float(v) for v in checkpoint.get("val_losses", [])]
+        stages = [str(v) for v in checkpoint.get("stages", [])]
+        best_val_loss = float(checkpoint.get("best_val_loss", math.inf))
+        start_epoch = int(checkpoint.get("epoch", 0))
+        print(f"Resumed from {args.resume} at completed epoch {start_epoch}", flush=True)
+
     max_train_batches = args.max_train_batches if args.max_train_batches > 0 else None
     max_val_batches = args.max_val_batches if args.max_val_batches > 0 else None
+
+    best_path = model_dir / "moment_network_joint_best.pth"
+    final_path = model_dir / "moment_network_joint_final.pth"
+    latest_path = model_dir / "moment_network_joint_latest.pth"
+    history_path = model_dir / "moment_network_joint_history.npz"
     checkpoint_dir = model_dir / "checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
@@ -542,128 +535,40 @@ def main() -> None:
     print(f"batch_size={args.batch_size} workers={args.num_workers}", flush=True)
     print(f"epochs_mean={args.epochs_mean} epochs_full={args.epochs_full}", flush=True)
 
-    stokes_to_train = selected_stokes(args.stokes)
-    if not stokes_to_train:
-        print(
-            f"SLURM_PROCID={os.environ.get('SLURM_PROCID', '0')} has no assigned Stokes channel; exiting.",
-            flush=True,
-        )
-        return
-    print(f"Assigned Stokes channels: {[stokes for stokes, _ in stokes_to_train]}", flush=True)
+    epoch_number = start_epoch
+    schedule = [("mean", args.epochs_mean), ("full", args.epochs_full)]
+    completed_by_stage = {stage_name: stages.count(stage_name) for stage_name, _ in schedule}
+    for stage, n_epochs in schedule:
+        remaining_epochs = max(0, n_epochs - completed_by_stage.get(stage, 0))
+        for _ in range(remaining_epochs):
+            epoch_number += 1
+            train_dataset.set_epoch(epoch_number)
+            val_dataset.set_epoch(epoch_number)
+            train_loss = train_epoch(
+                model,
+                train_loader,
+                optimizer,
+                device=device,
+                stage=stage,
+                max_batches=max_train_batches,
+            )
+            val_loss = validate_epoch(
+                model,
+                val_loader,
+                device=device,
+                stage=stage,
+                max_batches=max_val_batches,
+            )
+            train_losses.append(train_loss)
+            val_losses.append(val_loss)
+            stages.append(stage)
+            save_history(history_path, train_losses, val_losses, stages)
 
-    outputs_summary: dict[str, dict[str, object]] = {}
-    for stokes, channel in stokes_to_train:
-        stokes_lower = stokes.lower()
-        train_dataset = MomentPatchIterableDataset(
-            train_files,
-            stats=stats,
-            channel=channel,
-            seed=args.seed + 1000 * channel,
-            shuffle_files=True,
-            shuffle_samples=True,
-        )
-        val_dataset = MomentPatchIterableDataset(
-            val_files,
-            stats=stats,
-            channel=channel,
-            seed=args.seed + 100000 + 1000 * channel,
-            shuffle_files=False,
-            shuffle_samples=False,
-        )
-        train_loader = make_loader(
-            train_dataset,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
-            pin_memory=pin_memory,
-        )
-        val_loader = make_loader(
-            val_dataset,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
-            pin_memory=pin_memory,
-        )
-
-        model = LSSUNet(in_channels=1, out_channels=2).to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-
-        train_losses: list[float] = []
-        val_losses: list[float] = []
-        stages: list[str] = []
-        best_val_loss = math.inf
-        start_epoch = 0
-
-        if args.resume is not None:
-            checkpoint = torch.load(args.resume.expanduser(), map_location=device, weights_only=False)
-            if str(checkpoint.get("stokes", "")).upper() != stokes:
-                raise RuntimeError(f"Resume checkpoint {args.resume} is not a {stokes} checkpoint")
-            model.load_state_dict(checkpoint["model_state_dict"])
-            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-            train_losses = [float(v) for v in checkpoint.get("train_losses", [])]
-            val_losses = [float(v) for v in checkpoint.get("val_losses", [])]
-            stages = [str(v) for v in checkpoint.get("stages", [])]
-            best_val_loss = float(checkpoint.get("best_val_loss", math.inf))
-            start_epoch = int(checkpoint.get("epoch", 0))
-            print(f"[{stokes}] Resumed from {args.resume} at completed epoch {start_epoch}", flush=True)
-
-        best_path = model_dir / f"moment_network_{stokes_lower}_best.pth"
-        final_path = model_dir / f"moment_network_{stokes_lower}_final.pth"
-        latest_path = model_dir / f"moment_network_{stokes_lower}_latest.pth"
-        history_path = model_dir / f"moment_network_{stokes_lower}_history.npz"
-
-        print(f"Training independent {stokes} network", flush=True)
-        epoch_number = start_epoch
-        schedule = [("mean", args.epochs_mean), ("full", args.epochs_full)]
-        completed_by_stage = {stage_name: stages.count(stage_name) for stage_name, _ in schedule}
-        for stage, n_epochs in schedule:
-            remaining_epochs = max(0, n_epochs - completed_by_stage.get(stage, 0))
-            for _ in range(remaining_epochs):
-                epoch_number += 1
-                train_dataset.set_epoch(epoch_number)
-                val_dataset.set_epoch(epoch_number)
-                train_loss = train_epoch(
-                    model,
-                    train_loader,
-                    optimizer,
-                    device=device,
-                    stage=stage,
-                    max_batches=max_train_batches,
-                )
-                val_loss = validate_epoch(
-                    model,
-                    val_loader,
-                    device=device,
-                    stage=stage,
-                    max_batches=max_val_batches,
-                )
-                train_losses.append(train_loss)
-                val_losses.append(val_loss)
-                stages.append(stage)
-                save_history(history_path, train_losses, val_losses, stages)
-
-                status = ""
-                if stage == "full" and val_loss < best_val_loss:
-                    best_val_loss = val_loss
-                    save_checkpoint(
-                        best_path,
-                        stokes=stokes,
-                        model=model,
-                        optimizer=optimizer,
-                        epoch=epoch_number,
-                        stage=stage,
-                        best_val_loss=best_val_loss,
-                        args=args,
-                        train_files=train_files,
-                        val_files=val_files,
-                        stats=stats,
-                        train_losses=train_losses,
-                        val_losses=val_losses,
-                        stages=stages,
-                    )
-                    status = " new_best"
-
+            status = ""
+            if stage == "full" and val_loss < best_val_loss:
+                best_val_loss = val_loss
                 save_checkpoint(
-                    latest_path,
-                    stokes=stokes,
+                    best_path,
                     model=model,
                     optimizer=optimizer,
                     epoch=epoch_number,
@@ -677,90 +582,97 @@ def main() -> None:
                     val_losses=val_losses,
                     stages=stages,
                 )
+                status = " new_best"
 
-                if args.save_every > 0 and epoch_number % args.save_every == 0:
-                    checkpoint_path = checkpoint_dir / f"moment_network_{stokes_lower}_epoch_{epoch_number:04d}_{stage}.pth"
-                    save_checkpoint(
-                        checkpoint_path,
-                        stokes=stokes,
-                        model=model,
-                        optimizer=optimizer,
-                        epoch=epoch_number,
-                        stage=stage,
-                        best_val_loss=best_val_loss,
-                        args=args,
-                        train_files=train_files,
-                        val_files=val_files,
-                        stats=stats,
-                        train_losses=train_losses,
-                        val_losses=val_losses,
-                        stages=stages,
-                    )
-                    print(f"Saved intermediate checkpoint to {checkpoint_path}", flush=True)
-
-                print(
-                    f"[{stokes}][{stage}] epoch={epoch_number:04d} "
-                    f"train={train_loss:.6e} val={val_loss:.6e}{status}",
-                    flush=True,
-                )
-
-        save_checkpoint(
-            final_path,
-            stokes=stokes,
-            model=model,
-            optimizer=optimizer,
-            epoch=epoch_number,
-            stage=stages[-1] if stages else "none",
-            best_val_loss=best_val_loss,
-            args=args,
-            train_files=train_files,
-            val_files=val_files,
-            stats=stats,
-            train_losses=train_losses,
-            val_losses=val_losses,
-            stages=stages,
-        )
-        save_history(history_path, train_losses, val_losses, stages)
-        outputs_summary[stokes] = {
-            "best_model": str(best_path),
-            "final_model": str(final_path),
-            "latest_model": str(latest_path),
-            "history": str(history_path),
-            "best_val_loss": best_val_loss,
-            "final_train_loss": train_losses[-1] if train_losses else None,
-            "final_val_loss": val_losses[-1] if val_losses else None,
-        }
-        summary_path = args.output_dir / f"training_summary_{stokes_lower}.json"
-        summary_path.write_text(
-            json.dumps(
-                {
-                    "dataset_dir": str(args.dataset_dir),
-                    "output_dir": str(args.output_dir),
-                    "n_files": len(files),
-                    "n_train_files": len(train_files),
-                    "n_val_files": len(val_files),
-                    "train_files": [p.name for p in train_files],
-                    "val_files": [p.name for p in val_files],
-                    "outputs": {stokes: outputs_summary[stokes]},
-                    "normalization_stats": str(stats_path) if args.normalize else None,
-                    "config": vars(args),
-                },
-                indent=2,
-                sort_keys=True,
-                default=str,
+            save_checkpoint(
+                latest_path,
+                model=model,
+                optimizer=optimizer,
+                epoch=epoch_number,
+                stage=stage,
+                best_val_loss=best_val_loss,
+                args=args,
+                train_files=train_files,
+                val_files=val_files,
+                stats=stats,
+                train_losses=train_losses,
+                val_losses=val_losses,
+                stages=stages,
             )
-            + "\n",
-            encoding="ascii",
-        )
-        removed_checkpoints = cleanup_intermediate_checkpoints(checkpoint_dir, stokes_lower)
-        if removed_checkpoints:
+
+            if args.save_every > 0 and epoch_number % args.save_every == 0:
+                checkpoint_path = checkpoint_dir / f"moment_network_joint_epoch_{epoch_number:04d}_{stage}.pth"
+                save_checkpoint(
+                    checkpoint_path,
+                    model=model,
+                    optimizer=optimizer,
+                    epoch=epoch_number,
+                    stage=stage,
+                    best_val_loss=best_val_loss,
+                    args=args,
+                    train_files=train_files,
+                    val_files=val_files,
+                    stats=stats,
+                    train_losses=train_losses,
+                    val_losses=val_losses,
+                    stages=stages,
+                )
+                print(f"Saved intermediate checkpoint to {checkpoint_path}", flush=True)
+
             print(
-                f"Deleted {removed_checkpoints} {stokes} intermediate checkpoints from {checkpoint_dir}",
+                f"[{stage}] epoch={epoch_number:04d} train={train_loss:.6e} val={val_loss:.6e}{status}",
                 flush=True,
             )
-        print(f"Saved {stokes} summary to {summary_path}", flush=True)
 
-    print(f"Saved final models to {model_dir}", flush=True)
+    save_checkpoint(
+        final_path,
+        model=model,
+        optimizer=optimizer,
+        epoch=epoch_number,
+        stage=stages[-1] if stages else "none",
+        best_val_loss=best_val_loss,
+        args=args,
+        train_files=train_files,
+        val_files=val_files,
+        stats=stats,
+        train_losses=train_losses,
+        val_losses=val_losses,
+        stages=stages,
+    )
+    save_history(history_path, train_losses, val_losses, stages)
+    summary_path = args.output_dir / "training_summary.json"
+    summary_path.write_text(
+        json.dumps(
+            {
+                "dataset_dir": str(args.dataset_dir),
+                "output_dir": str(args.output_dir),
+                "n_files": len(files),
+                "n_train_files": len(train_files),
+                "n_val_files": len(val_files),
+                "train_files": [p.name for p in train_files],
+                "val_files": [p.name for p in val_files],
+                "best_model": str(best_path),
+                "final_model": str(final_path),
+                "latest_model": str(latest_path),
+                "history": str(history_path),
+                "normalization_stats": str(stats_path) if args.normalize else None,
+                "best_val_loss": best_val_loss,
+                "final_train_loss": train_losses[-1] if train_losses else None,
+                "final_val_loss": val_losses[-1] if val_losses else None,
+                "config": vars(args),
+            },
+            indent=2,
+            sort_keys=True,
+            default=str,
+        )
+        + "\n",
+        encoding="ascii",
+    )
+    removed_checkpoints = cleanup_intermediate_checkpoints(checkpoint_dir)
+    if removed_checkpoints:
+        print(f"Deleted {removed_checkpoints} intermediate checkpoints from {checkpoint_dir}", flush=True)
+    print(f"Saved final model to {final_path}", flush=True)
+    print(f"Saved summary to {summary_path}", flush=True)
 
 
 if __name__ == "__main__":

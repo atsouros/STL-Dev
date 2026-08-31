@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import os
 import re
 import sys
@@ -16,12 +17,17 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
+CODE_VERSION = "2026-06-29_nonreduced_apply_no_scaleft_operator"
+
+
 # Repo root (for imports)
 REPO_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from STL_main.STL_2D_FFT_Torch import STL_2D_FFT_Torch as FFT_DataClass
 from STL_main.STL_2D_Kernel_Torch import STL_2D_Kernel_Torch as Kernel_DataClass
+import STL_main.ST_Operator as st_operator_module
+import STL_main.ST_Statistics as st_statistics_module
 from utils import (
     NUISANCE_DIR,
     SIGNAL_DIR,
@@ -195,6 +201,13 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
 
     _configure_backend_defaults(device=device, dtype=dtype)
     torch.manual_seed(seed)
+    print(
+        "code_provenance: "
+        f"version={CODE_VERSION} | "
+        f"compsep={Path(__file__).resolve()} | "
+        f"ST_Operator={inspect.getsourcefile(st_operator_module)} | "
+        f"ST_Statistics={inspect.getsourcefile(st_statistics_module)}"
+    )
     print(f"PBC: {pbc}")
     print(f"Epochs: {epochs} | steps per epoch: {epoch_steps}")
     print("Optimizer: lbfgs | one optimizer iteration per logged step")
@@ -369,22 +382,39 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
                 has_fewer_convolutions=st_has_fewer_convolutions,
                 **ps_kwargs,
             )
+            # Legacy non-reduced Planck runs recorded st_angular_ft/st_scale_ft in
+            # metadata but did not pass those options into the standard ST operator.
+            # Keep that behavior explicit so this path cannot accidentally enter
+            # STL_main.ST_Statistics.to_scale_ft(), whose non-isotropic branch is
+            # not part of the validated Planck production configuration.
+            st_op_local.angular_ft = False
+            st_op_local.scale_ft = False
         _maybe_set_wtype(st_op=st_op_local, ref_dc=ref_dc, wtype=wtype)
+        print(
+            "actual_st_operator: "
+            f"requested_reduced={st_reduced} | "
+            f"metadata_angular_ft={st_angular_ft} | metadata_scale_ft={st_scale_ft} | "
+            f"operator_angular_ft={getattr(st_op_local, 'angular_ft', None)} | "
+            f"operator_scale_ft={getattr(st_op_local, 'scale_ft', None)}"
+        )
         return st_op_local
 
     st_op_3 = build_st_op(ref_dc_3)
     st_op_5 = build_st_op(ref_dc_5)
+    apply_transform_kwargs = {} if st_reduced else {"angular_ft": False, "scale_ft": False}
 
     with torch.no_grad():
         st_op_3.apply(
             ref_dc_3,
             norm="store_ref",
             compute_cross_matrix=CROSS_MATRIX_REF_3,
+            **apply_transform_kwargs,
         )
         st_op_5.apply(
             ref_dc_5,
             norm="store_ref",
             compute_cross_matrix=CROSS_MATRIX_REF_5,
+            **apply_transform_kwargs,
         )
 
     # -------------------------------------------------------------------------
@@ -399,11 +429,13 @@ def _run_patch(patch: str, *, rank: int = 0) -> None:
                 dc,
                 norm="load_ref",
                 compute_cross_matrix=CROSS_MATRIX_NO_NOISE_CHANNELS,
+                **apply_transform_kwargs,
             ).to_flatten(mean_along_batch=True, keepnans=False)
         return st_op_5.apply(
             dc,
             norm="load_ref",
             compute_cross_matrix=CROSS_MATRIX_WITH_NOISE_CHANNELS,
+            **apply_transform_kwargs,
         ).to_flatten(mean_along_batch=True, keepnans=False)
 
     def make_target_batch(

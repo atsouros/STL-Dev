@@ -41,6 +41,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--nuisance-dir", type=Path, default=DEFAULT_NUISANCE_DIR)
     parser.add_argument("--new-projection-path", type=Path, default=DEFAULT_NEW_PROJECTION_PATH)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
+    parser.add_argument(
+        "--result-file",
+        action="append",
+        type=Path,
+        default=None,
+        help="Exact result .npy file to plot. May be repeated. When set, results-dir scanning is skipped.",
+    )
     parser.add_argument("--freq", default="353")
     parser.add_argument(
         "--nuisance-version",
@@ -491,17 +498,22 @@ def main() -> None:
     args.signal_dir = args.signal_dir.expanduser()
     args.nuisance_dir = args.nuisance_dir.expanduser()
     args.new_projection_path = args.new_projection_path.expanduser()
+    if args.result_file is not None:
+        args.result_file = [path.expanduser() for path in args.result_file]
     if args.out_dir is not None:
         args.out_dir = args.out_dir.expanduser()
 
     requested_patches = set(args.patch or [])
-    result_paths = sorted(
-        [
-            *args.results_dir.glob("p*_*.npy"),
-            *args.results_dir.glob("newproj_p*_*.npy"),
-        ],
-        key=patch_sort_key,
-    )
+    if args.result_file:
+        result_paths = sorted(args.result_file, key=patch_sort_key)
+    else:
+        result_paths = sorted(
+            [
+                *args.results_dir.glob("p*_*.npy"),
+                *args.results_dir.glob("newproj_p*_*.npy"),
+            ],
+            key=patch_sort_key,
+        )
     if requested_patches:
         result_paths = [path for path in result_paths if patch_from_stem(path.stem) in requested_patches]
     if args.patch_start is not None:

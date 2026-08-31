@@ -28,8 +28,8 @@ from train_network import LSSUNet
 from utils import SIGNAL_DIR, _center_crop, _downsample_by_four, _select_no_bonus_signal_path
 
 
-DEFAULT_MODEL_DIR = Path("/pscratch/sd/a/atsouros/STL/moment_network_training/version_2/models")
-DEFAULT_OUTPUT_DIR = Path("/pscratch/sd/a/atsouros/STL/moment_network_inference/version_2")
+DEFAULT_MODEL_DIR = Path("/pscratch/sd/a/atsouros/STL/moment_network_training/version_2_qu_twostage/models")
+DEFAULT_OUTPUT_DIR = Path("/pscratch/sd/a/atsouros/STL/moment_network_inference/version_2_qu_twostage")
 DEFAULT_PLOTS_DIR = Path("/pscratch/sd/a/atsouros/STL/mn_plots")
 
 
@@ -104,6 +104,25 @@ def load_signal_qu(
     return observed, paths
 
 
+def load_signal_i(
+    signal_dir: Path,
+    *,
+    patch: str,
+    intensity_freq: int,
+    map_size: int,
+) -> tuple[np.ndarray, dict[str, object]]:
+    i_path = _select_no_bonus_signal_path(signal_dir, f"patch_{patch}_I{intensity_freq}_*.npy", f"I{intensity_freq}")
+    i_raw = np.load(i_path).astype(np.float64)
+    expected_raw_shape = (2 * map_size, 2 * map_size)
+    if i_raw.shape != expected_raw_shape:
+        raise RuntimeError(
+            f"Expected raw I{intensity_freq} map to have shape {expected_raw_shape} before downgrading, got {i_raw.shape}"
+        )
+    i_map = _downsample_by_four(i_raw)
+    i_map = _center_crop(i_map, out_hw=(map_size, map_size))
+    return i_map.astype(np.float32), {"i_signal": str(i_path), "i_raw_shape": list(i_raw.shape)}
+
+
 def load_model(checkpoint_path: Path, device: torch.device, expected_stokes: str) -> tuple[LSSUNet, dict[str, np.ndarray], dict[str, object]]:
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     parameterization = checkpoint.get("posterior_parameterization")
@@ -131,9 +150,50 @@ def load_model(checkpoint_path: Path, device: torch.device, expected_stokes: str
     return model, stats, checkpoint
 
 
-def load_joint_model(checkpoint_path: Path, device: torch.device) -> tuple[LSSUNet, dict[str, np.ndarray], dict[str, object]]:
+def load_joint_model(checkpoint_path: Path, device: torch.device) -> tuple[object, dict[str, np.ndarray], dict[str, object]]:
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     parameterization = checkpoint.get("posterior_parameterization")
+    model_format = checkpoint.get("model_format")
+
+    norm = checkpoint.get("normalization")
+    if norm is None:
+        raise KeyError(f"Checkpoint {checkpoint_path} does not contain normalization statistics")
+    stats = {
+        "input_mean": np.asarray(norm["input_mean"], dtype=np.float32),
+        "input_std": np.asarray(norm["input_std"], dtype=np.float32),
+        "target_mean": np.asarray(norm["target_mean"], dtype=np.float32),
+        "target_std": np.asarray(norm["target_std"], dtype=np.float32),
+    }
+
+    if model_format == "joint_qu_two_stage_mean_variance":
+        for key in ("input_mean", "input_std", "target_mean", "target_std"):
+            if stats[key].size != 2:
+                raise RuntimeError(f"Two-stage Q/U checkpoint {checkpoint_path} has {key} shape {stats[key].shape}; expected 2")
+
+        mean_model = LSSUNet(in_channels=2, out_channels=2).to(device)
+        variance_model = LSSUNet(in_channels=2, out_channels=2).to(device)
+        mean_model.load_state_dict(checkpoint["mean_model_state_dict"])
+        variance_model.load_state_dict(checkpoint["variance_model_state_dict"])
+        mean_model.eval()
+        variance_model.eval()
+        return {"kind": "two_stage_qu", "mean_model": mean_model, "variance_model": variance_model}, stats, checkpoint
+
+    if model_format == "joint_qu_i_two_stage_mean_variance" or parameterization == "two_stage_residual_logvar":
+        for key in ("input_mean", "input_std"):
+            if stats[key].size != 3:
+                raise RuntimeError(f"Two-stage Q/U/I checkpoint {checkpoint_path} has {key} shape {stats[key].shape}; expected 3")
+        for key in ("target_mean", "target_std"):
+            if stats[key].size != 2:
+                raise RuntimeError(f"Two-stage Q/U/I checkpoint {checkpoint_path} has {key} shape {stats[key].shape}; expected 2")
+
+        mean_model = LSSUNet(in_channels=3, out_channels=2).to(device)
+        variance_model = LSSUNet(in_channels=3, out_channels=2).to(device)
+        mean_model.load_state_dict(checkpoint["mean_model_state_dict"])
+        variance_model.load_state_dict(checkpoint["variance_model_state_dict"])
+        mean_model.eval()
+        variance_model.eval()
+        return {"kind": "two_stage", "mean_model": mean_model, "variance_model": variance_model}, stats, checkpoint
+
     if parameterization is None:
         print(
             f"Warning: checkpoint {checkpoint_path} has no posterior_parameterization metadata; "
@@ -150,22 +210,13 @@ def load_joint_model(checkpoint_path: Path, device: torch.device) -> tuple[LSSUN
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 
-    norm = checkpoint.get("normalization")
-    if norm is None:
-        raise KeyError(f"Checkpoint {checkpoint_path} does not contain normalization statistics")
-    stats = {
-        "input_mean": np.asarray(norm["input_mean"], dtype=np.float32),
-        "input_std": np.asarray(norm["input_std"], dtype=np.float32),
-        "target_mean": np.asarray(norm["target_mean"], dtype=np.float32),
-        "target_std": np.asarray(norm["target_std"], dtype=np.float32),
-    }
     for key, value in stats.items():
         if value.size != 2:
             raise RuntimeError(
                 f"Joint checkpoint {checkpoint_path} has normalization field {key} with shape {value.shape}; "
                 "expected two Q/U values."
             )
-    return model, stats, checkpoint
+    return {"kind": "legacy", "model": model}, stats, checkpoint
 
 
 @torch.no_grad()
@@ -212,6 +263,32 @@ def infer_joint_map(
 
     mean_norm = output[:2]
     logvar_norm = np.clip(output[2:4], -12.0, 12.0)
+    std_norm = np.exp(0.5 * logvar_norm)
+    mean = mean_norm * target_std + target_mean
+    std = std_norm * target_std
+    return mean.astype(np.float32), std.astype(np.float32), logvar_norm.astype(np.float32)
+
+
+@torch.no_grad()
+def infer_two_stage_joint_map(
+    models: dict[str, object],
+    observed: np.ndarray,
+    stats: dict[str, np.ndarray],
+    *,
+    device: torch.device,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    n_input = int(stats["input_mean"].size)
+    if observed.shape[0] != n_input:
+        raise RuntimeError(f"Two-stage checkpoint expects {n_input} input channels, got observed shape {observed.shape}")
+    input_mean = stats["input_mean"].reshape(n_input, 1, 1)
+    input_std = stats["input_std"].reshape(n_input, 1, 1)
+    target_mean = stats["target_mean"].reshape(2, 1, 1)
+    target_std = stats["target_std"].reshape(2, 1, 1)
+
+    observed_norm = (observed - input_mean) / input_std
+    tensor = torch.from_numpy(observed_norm[None].astype(np.float32)).to(device=device)
+    mean_norm = models["mean_model"](tensor).detach().cpu().numpy()[0]
+    logvar_norm = np.clip(models["variance_model"](tensor).detach().cpu().numpy()[0], -12.0, 12.0)
     std_norm = np.exp(0.5 * logvar_norm)
     mean = mean_norm * target_std + target_mean
     std = std_norm * target_std
@@ -302,6 +379,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run trained moment network(s) on a Planck signal patch.")
     parser.add_argument("--patch", default=os.environ.get("PATCH", "3"))
     parser.add_argument("--freq", type=int, default=int(os.environ.get("FREQ", "353")))
+    parser.add_argument("--intensity-freq", type=int, default=int(os.environ.get("INTENSITY_FREQ", "857")))
     parser.add_argument("--map-size", type=int, default=int(os.environ.get("MAP_SIZE", "384")))
     parser.add_argument("--signal-dir", type=Path, default=Path(os.environ.get("PLANCK_SIGNAL_DIR", str(SIGNAL_DIR))))
     parser.add_argument("--model-dir", type=Path, default=Path(os.environ.get("MODEL_DIR", str(DEFAULT_MODEL_DIR))))
@@ -362,8 +440,18 @@ def main() -> None:
         network_architecture = "two independent scalar moment networks: Q data -> Q posterior moments, U data -> U posterior moments"
     else:
         joint_model, joint_stats, joint_checkpoint = load_joint_model(joint_model_path, device=device)
-        mean, std, logvar_norm = infer_joint_map(joint_model, observed, joint_stats, device=device)
-        network_architecture = "old joint Q/U moment network: (Q data, U data) -> Q/U posterior moments"
+        if joint_model["kind"] == "two_stage":
+            i_map, i_paths = load_signal_i(signal_dir, patch=patch, intensity_freq=args.intensity_freq, map_size=args.map_size)
+            signal_paths.update(i_paths)
+            observed_joint = np.concatenate([observed, i_map[None]], axis=0)
+            mean, std, logvar_norm = infer_two_stage_joint_map(joint_model, observed_joint, joint_stats, device=device)
+            network_architecture = "joint Q/U/I two-stage moment network: (Q data, U data, I data) -> Q/U posterior mean and residual variance"
+        elif joint_model["kind"] == "two_stage_qu":
+            mean, std, logvar_norm = infer_two_stage_joint_map(joint_model, observed, joint_stats, device=device)
+            network_architecture = "joint Q/U two-stage moment network: old-style (Q data, U data) -> Q/U posterior mean, then frozen-mean residual variance"
+        else:
+            mean, std, logvar_norm = infer_joint_map(joint_model["model"], observed, joint_stats, device=device)
+            network_architecture = "old joint Q/U moment network: (Q data, U data) -> Q/U posterior moments"
 
     npz_path = out_dir / f"patch_{patch}{output_suffix}_moment_network_inference.npz"
     np.savez_compressed(
@@ -392,6 +480,7 @@ def main() -> None:
     summary = {
         "patch": patch,
         "freq": args.freq,
+        "intensity_freq": args.intensity_freq,
         "network_mode": args.network_mode,
         "output_tag": output_tag,
         "network_architecture": network_architecture,

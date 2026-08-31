@@ -1,0 +1,457 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title[Scattering likelihood]{Scattering likelihood for CIB noise}
+\subtitle{Bird's-eye view of the current pipeline}
+\author{}
+\date{}
+
+\newcommand{\ph}{\phi}
+\newcommand{\mucib}{\mu_{\rm CIB}}
+\newcommand{\Ccib}{C_{\rm CIB}}
+\newcommand{\Ulike}{U_{\rm like}}
+\newcommand{\Uprior}{U_{\rm prior}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Goal}
+  We observe
+  \[
+    d = s + n,
+  \]
+  where \(s\) is the signal and \(n\) is CIB-like non-Gaussian noise.
+
+  \vspace{0.4cm}
+  The goal is to write and sample a posterior likelihood using a learned
+  scattering model for the noise:
+  \[
+    p(s\mid d)
+    \propto
+    \exp[-U(s)],
+    \qquad
+    U(s)
+    =
+    \Ulike(d-s)
+    +
+    \Uprior(s).
+  \]
+
+  \vspace{0.3cm}
+  The scattering likelihood is
+  \[
+    \Ulike(n)
+    =
+    \frac12
+    \left[\ph(n)-\mucib\right]^{\top}
+    \Ccib^{-1}
+    \left[\ph(n)-\mucib\right].
+  \]
+\end{frame}
+
+\begin{frame}{What Is Learned}
+  The learned object is not an image-space Gaussian. It is a Gaussian model
+  in reduced scattering-statistic space:
+  \[
+    \ph(n) \sim \mathcal{N}(\mucib,\Ccib).
+  \]
+
+  \vspace{0.35cm}
+  Therefore, for any candidate signal \(s\), the residual
+  \[
+    n(s)=d-s
+  \]
+  is scored by whether its scattering statistics look like CIB statistics.
+
+  \vspace{0.35cm}
+  The scalar diagnostic is
+  \[
+    \rho(n)
+    =
+    \sqrt{
+    \left[\ph(n)-\mucib\right]^{\top}
+    \Ccib^{-1}
+    \left[\ph(n)-\mucib\right]
+    },
+    \qquad
+    \Ulike=\frac12\rho^2.
+  \]
+\end{frame}
+
+\begin{frame}{Covariance Estimation Script}
+  \texttt{estimate\_scattering\_covariance.py} estimates the ingredients
+  \(\mucib\), \(\Ccib\), and the metadata needed to define \(\ph\).
+
+  \vspace{0.3cm}
+  Inputs:
+  \[
+    n_a \in \mathbb{R}^{256\times256},
+    \qquad a=1,\ldots,N.
+  \]
+
+  Operations:
+  \[
+    y_a = \ph(n_a),
+    \qquad
+    \widehat{\mu}
+    =
+    \frac1N\sum_{a=1}^{N} y_a,
+  \]
+  \[
+    \widehat{C}
+    =
+    \frac{1}{N-1}
+    \sum_{a=1}^{N}
+    (y_a-\widehat{\mu})(y_a-\widehat{\mu})^{\top}.
+  \]
+
+  \vspace{0.25cm}
+  If too few input maps are available, the script can synthesize additional
+  maps.
+\end{frame}
+
+\begin{frame}{Current CIB Product}
+  Current CIB product:
+  \[
+    N = 3400
+  \]
+  patches extracted from the original $100$ maps of size $1500 \times 1500$ 
+
+  \vspace{0.35cm}
+  Reduced statistic dimension:
+  \[
+    d_{\rm active}=188.
+  \]
+
+  \vspace{0.35cm}
+  The JSON fixes the statistic definition: preprocessing, scattering
+  parameters, normalization, and active-mask convention.
+\end{frame}
+
+\begin{frame}{Likelihood Validation}
+  We tested three objects under the learned CIB likelihood:
+
+  \vspace{0.2cm}
+  \begin{itemize}
+    \item Gaussian draws directly in statistic space:
+    \(y\sim \mathcal{N}(\mucib,\Ccib)\).
+    \item Maps synthesized to match such statistic draws.
+    \item Real CIB patches from the original bank.
+  \end{itemize}
+
+  \vspace{0.3cm}
+  If the model were perfectly realized by the synthesized maps, the synthesized
+  maps would have \(\rho\) comparable to direct statistic draws and real CIB maps.
+
+  \vspace{0.3cm}
+  For \(d_{\rm active}=188\), the typical Gaussian-null scale is
+  \[
+    \rho \sim \sqrt{188} \simeq 13.7.
+  \]
+\end{frame}
+
+\begin{frame}{Likelihood Validation Results}
+  \begin{center}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Object & \(n\) & mean \(\rho\) & median \(\rho\) & range \(\rho\) & mean \(\Ulike\) \\
+    \midrule
+    Statistic draws & 7 & 12.6862 & 12.5642 & 11.7173--13.7384 & 80.6452 \\
+    Synthesized maps & 7 & 34.7629 & 33.9045 & 31.4099--43.2775 & 611.2964 \\
+    Real CIB maps & 7 & 13.7758 & 13.4523 & 12.1901--17.7101 & 96.3366 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \vspace{0.35cm}
+  Interpretation:
+  direct statistic draws and real CIB maps are on the expected scale
+  \(\rho\sim\sqrt{d}\). Synthesized maps are much worse under the same
+  likelihood.
+
+  \vspace{0.25cm}
+  This indicates that the map synthesis step does not faithfully realize the
+  sampled scattering statistics, even when the target statistic itself is
+  likely under the learned Gaussian.
+\end{frame}
+
+\begin{frame}{Sampled-Statistic Syntheses}
+  \begin{center}
+    \includegraphics[width=0.95\linewidth,height=0.78\textheight,keepaspectratio]{figures/validation_autoscale.png}
+  \end{center}
+
+  \vspace{-0.2cm}
+  \centering
+  Same validation image with individual plotting scale.
+\end{frame}
+
+\begin{frame}{Sampled-Statistic Syntheses: Fixed Scale}
+  \begin{center}
+    \includegraphics[width=0.95\linewidth,height=0.78\textheight,keepaspectratio]{figures/validation_fixed_scale.png}
+  \end{center}
+
+  \vspace{-0.2cm}
+  \centering
+  Same objects on a common color scale.
+\end{frame}
+
+\begin{frame}{MGVI Formulation}
+  For posterior sampling, we used NIFTy/MGVI with
+  \[
+    U(s)
+    =
+    \frac12
+    \left[\ph(d-s)-\mucib\right]^{\top}
+    \Ccib^{-1}
+    \left[\ph(d-s)-\mucib\right]
+    +
+    \Uprior(s).
+  \]
+
+  \vspace{0.3cm}
+  The prior was a correlated-field Gaussian prior for \(s\). The likelihood
+  is the learned scattering model for the residual \(d-s\), not for \(s\).
+
+  \vspace{0.3cm}
+  A (refined) recovered signal from a vanilla ST component separation run was used as an initialization.
+ 
+\end{frame}
+
+\begin{frame}{MGVI Diagnostic}
+  \[
+    d-s_{\rm sample}
+  \]
+  should look CIB-like and have reasonable scattering likelihood.
+
+  \vspace{0.3cm}
+  Latest run diagnostics:
+  \[
+    \Ulike(s=0)=13620.6,
+    \qquad
+    \Ulike(s_{\rm MAP})=39.36.
+  \]
+
+  \vspace{0.2cm}
+  The MAP strongly improves the residual likelihood. The remaining issue is
+  morphological: posterior samples can contain negative compact structures in
+  \(s\), suggesting that the signal prior is not restrictive enough where the
+  CIB likelihood allows point-source-like residual tradeoffs.
+\end{frame}
+
+\begin{frame}{MGVI Results}
+  \begin{center}
+    \includegraphics[width=0.98\linewidth,height=0.80\textheight,keepaspectratio]{figures/mgvi_results_signal.png}
+  \end{center}
+\end{frame}
+
+\section{Direct Langevin sampling}
+
+\begin{frame}{Direct Image-Space Langevin Sampling}
+  We replace the NIFTy/MGVI sampling stage by unadjusted Langevin dynamics
+  (ULA) directly in image space:
+  \[
+    s_{k+1}
+    =s_k-\epsilon\,\nabla_s U(s_k)
+    +\sqrt{2\epsilon}\,\xi_k,
+    \qquad
+    \xi_k\sim\mathcal{N}(0,I_{256^2}).
+  \]
+
+  At every iteration:
+  \begin{enumerate}
+    \item form the candidate CIB residual \(n_k=d-s_k\);
+    \item compute the differentiable STL vector \(\ph(n_k)\);
+    \item evaluate \(\Ulike(n_k)\) and the signal regularization;
+    \item use PyTorch automatic differentiation for \(\nabla_s U\);
+    \item take the deterministic drift plus Gaussian-noise step.
+  \end{enumerate}
+
+  The diagnostic
+  \[
+    \rho_k=\sqrt{2\Ulike(d-s_k)}
+  \]
+  contains only the scattering-likelihood contribution.
+\end{frame}
+
+\begin{frame}{Why a Signal-Space Constraint Is Needed}
+  The image has \(256^2=65\,536\) pixel degrees of freedom, whereas the
+  active likelihood vector has only \(188\) statistics. Locally,
+  \[
+    \delta\ph\simeq J_\ph\,\delta s,
+    \qquad
+    J_\ph\in\mathbb{R}^{188\times65\,536}.
+  \]
+  Rank--nullity therefore implies
+  \[
+    \dim\ker J_\ph
+    =65\,536-\operatorname{rank}(J_\ph)
+    \ge65\,536-188=65\,348.
+  \]
+
+  Many local image perturbations are consequently invisible to the
+  likelihood at first order. Without a restoring term they undergo Langevin
+  diffusion; with a prior, their behaviour is largely controlled by that
+  prior.
+\end{frame}
+
+\begin{frame}{Initialization: Component Separation and Refinement}
+  We do \emph{not} initialize the chain from zero or from the observed map.
+  The initialization is built in two deterministic stages:
+  \begin{enumerate}
+    \item STL component separation gives \(s_{\rm compsep}\).
+    \item We refine it by minimizing
+      \[
+        \Ulike(d-s)
+        +\frac{\lambda_{\rm ref}}{2}
+         \lVert s-s_{\rm compsep}\rVert^2,
+        \qquad \lambda_{\rm ref}=0.1,
+      \]
+      using L-BFGS (maximum 300 iterations).
+  \end{enumerate}
+
+  The refinement changed
+  \[
+    \rho:64.59\longrightarrow6.82,
+    \qquad
+    {\rm RMS}(s_{\rm refined}-s_{\rm compsep})\simeq0.137.
+  \]
+
+  \alert{Both Langevin approaches below start from}
+  \[
+    s_0=s_{\rm refined},
+  \]
+  after imposing the zero-mean convention.
+\end{frame}
+
+\begin{frame}{Approach 1: Power-Law Gaussian Prior}
+  The first ULA target was
+  \[
+    U(s)=\Ulike(d-s)+\frac12
+    \sum_{k\ne0}\frac{|\widehat{s}(k)|^2}{P(k)},
+    \qquad
+    P(k)\propto k^{-3.07751}.
+  \]
+  This prior is zero-centred. The exponent \(-3.07751\) is the
+  \emph{power-spectrum} slope, twice the Fourier-amplitude slope
+  \(-1.53876\). The spectrum was normalized to target RMS \(2.53272\).
+
+  \vspace{0.2cm}
+  Run parameters:
+  \[
+    s_0=s_{\rm refined},\quad
+    \epsilon=10^{-4},\quad
+    N_{\rm step}=20\,000,\quad
+    N_{\rm burn}=10\,000,
+  \]
+  with random seed \(240829\), float64 arithmetic, and a zero-mean signal.
+\end{frame}
+
+\begin{frame}{Approach 1: Observed Behaviour}
+  Although the refined initialization had \(\rho=6.82\), the power-law prior
+  assigned it a very large energy and drove the residual back toward
+  \(\rho\simeq40\)--47.
+
+  \begin{itemize}
+    \item The chain correctly loaded \(s_{\rm refined}\).
+    \item \(\Ulike\) increased while the power-law prior energy decreased by a
+      much larger amount.
+    \item Total energy therefore decreased as the residual became less
+      CIB-like.
+    \item Changing only the initialization cannot fix a mismatch in the
+      target posterior.
+  \end{itemize}
+
+  This simple prior fixes a global RMS and spectral slope, but it does not
+  encode the morphology of the successfully separated signal.
+\end{frame}
+
+\begin{frame}{Approach 2: Matching the Refined Map}
+  We replace the zero-centred power-law prior by a local quadratic anchor:
+  \[
+    U(s)=\Ulike(d-s)
+    +\frac{\lambda}{2}\lVert s-s_{\rm refined}\rVert^2.
+  \]
+  The initial condition and anchor centre are identical:
+  \[
+    s_0=s_{\rm anchor}=s_{\rm refined}.
+  \]
+
+  This gives every image-space direction restoring curvature \(\lambda\),
+  while preserving the refined reconstruction. In an anchor-only direction,
+  the nominal pixel width is
+  \[
+    \sigma_{\rm anchor}=\lambda^{-1/2}.
+  \]
+
+  We explored
+  \[
+    \lambda=100,50,25
+    \quad\Longleftrightarrow\quad
+    \sigma_{\rm anchor}=0.10,0.141,0.20.
+  \]
+  With \(\lambda=100\), the chain stabilized near \(\rho\simeq8.5\)--9;
+  smaller \(\lambda\) increases map variability and residual \(\rho\).
+\end{frame}
+
+\begin{frame}{Current Anchored-ULA Configuration}
+  \begin{center}
+  \begin{tabular}{ll}
+    \toprule
+    Quantity & Value \\
+    \midrule
+    Initial map & \(s_{\rm refined}\) \\
+    Anchor centre & \(s_{\rm refined}\) \\
+    Anchor precision & \(\lambda=50\) (\(25\) and \(100\) also tested) \\
+    ULA step size & \(\epsilon=10^{-4}\) \\
+    Total steps & \(20\,000\) \\
+    Burn-in & \(10\,000\) \\
+    Thinning & \(1\,000\) \\
+    Saved samples & \(10\) \\
+    Random seed & \(240829\) \\
+    Arithmetic & float64, zero-mean signal \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  Diagnostics saved at every step are total, likelihood and anchor energies,
+  gradient RMS, \(\rho\), and RMS distance from the anchor. Samples, residuals,
+  posterior mean, and posterior standard deviation are also saved.
+\end{frame}
+
+\begin{frame}{Current Interpretation}
+  Main conclusions:
+
+  \vspace{0.2cm}
+  \begin{itemize}
+    \item The learned CIB likelihood is well-defined by \(\mucib\), \(\Ccib\),
+    and the JSON scattering metadata.
+    \item Real CIB maps score near the expected Gaussian-null scale in
+    statistic space.
+    \item Synthesizing maps from sampled statistics is currently imperfect:
+    those maps have too-large \(\rho\).
+    \item In MGVI, the residual \(d-s\) can look CIB-like, but the recovered
+    \(s\) can still absorb negative point-source-like structures.
+    \item Direct ULA confirms that the signal-space constraint is decisive:
+    the zero-centred power-law prior rejects the refined solution, whereas a
+    refined-map anchor produces controlled local samples.
+  \end{itemize}
+
+  \vspace{0.35cm}
+  The next technical pressure point is therefore the signal model/prior, not
+  only the CIB likelihood.
+\end{frame}
+
+\end{document}

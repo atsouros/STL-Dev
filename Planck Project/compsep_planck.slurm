@@ -11,19 +11,22 @@
 #SBATCH --job-name=compsep
 #SBATCH -o planck_compsep.log
 #SBATCH -e planck_compsep.err
+#SBATCH --export=NONE
 
 set -eo pipefail
 
 export SLURM_CPU_BIND=cores
 
-module unload cudatoolkit
-module load cudatoolkit/12.2
-module load cudnn/8.9.3_cuda12
-module load cray-mpich craype-accel-nvidia80
-
-module use /pscratch/sd/a/atsouros/cmbenv/master-0.0.1/modulefiles
-module load cmbenv
-source /pscratch/sd/a/atsouros/cmbenv/master-0.0.1/conda/bin/activate
+set +u
+# With --export=NONE, Slurm starts this job from a clean environment. Avoid
+# module purge here because on current Perlmutter CPE it can emit restore-lmod
+# warnings and leave the environment in a bad state.
+module load pytorch
+unset PYTHONHOME
+unset PYTHONPATH
+unset PYTHONSTARTUP
+export PYTHONNOUSERSITE=1
+set -u
 
 cd "$SLURM_SUBMIT_DIR" || exit 1
 
@@ -31,20 +34,30 @@ export OMP_NUM_THREADS=32
 export NUMBA_NUM_THREADS=32
 export PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export HOME="${HOME:-/pscratch/sd/a/atsouros}"
+export PYTORCH_KERNEL_CACHE_PATH="${PYTORCH_KERNEL_CACHE_PATH:-${SLURM_SUBMIT_DIR}/.torch_kernel_cache}"
+mkdir -p "$PYTORCH_KERNEL_CACHE_PATH"
+export PYTHON_EXE="$(command -v python3 || command -v python)"
+if [[ -z "${PYTHON_EXE}" ]]; then
+  echo "ERROR: could not find python3 or python after loading modules" >&2
+  exit 1
+fi
+
+echo "python=${PYTHON_EXE}"
+"${PYTHON_EXE}" --version
 
 export PATCH_START=0
-export PATCH_END=192
+export PATCH_END=191
 
-
+export ROOT="/pscratch/sd/e/erussie/GNILC+ST/patches"
 export PLANCK_NUISANCE_VERSION="v4_10_arcmin"
-
 
 # NERSC input paths.
 export PLANCK_SIGNAL_DIR="/pscratch/sd/e/erussie/GNILC+ST/patches/signal"
 export PLANCK_NUISANCE_DIR="/pscratch/sd/e/erussie/GNILC+ST/patches/nuisance"
 
 # Save outputs next to this Slurm submission directory.
-export OUTDIR="$SLURM_SUBMIT_DIR/planck_results/version_2"
+export OUTDIR="$SLURM_SUBMIT_DIR/planck_results/version_3"
 
 # Data selection.
 export FREQ=353
@@ -75,12 +88,14 @@ export ST_HARMONICS_SCALE=3
 export ST_DJ=3
 export ST_COMPUTE_PS=True
 # Power-spectrum estimator: "legacy" for the original backend, "gaussian_rings" for log-Gaussian bins.
-export ST_PS_METHOD=legacy
+export ST_PS_METHOD=gaussian_rings
 # Optional override. Leave unset to use the backend default; try 12 to halve the 384x384 default.
 # export ST_PS_N_BINS=12
 export ST_FEWER_CONVOLUTIONS=False
 
 export START_WITHOUT_NOISE_CHANNELS=False
+
+mkdir -p "$OUTDIR"
 
 echo "Launching production run: patches ${PATCH_START}-${PATCH_END} on 4 GPUs"
 echo "Submit dir: $SLURM_SUBMIT_DIR"
@@ -105,12 +120,12 @@ for chunk_start in $(seq "$PATCH_START" 4 "$PATCH_END"); do
   export PATCH_LIST="$patch_list"
   echo "Launching patch chunk: PATCH_LIST=$PATCH_LIST"
 
-  srun -N1 \
+  srun --export=ALL -N1 \
     -n4 \
     --ntasks-per-node=4 \
     --gpus-per-task=1 \
     --cpus-per-task=32 \
-    python -u compsep_planck.py
+    "${PYTHON_EXE}" -u compsep_planck.py
 done
 
 unset PATCH_LIST

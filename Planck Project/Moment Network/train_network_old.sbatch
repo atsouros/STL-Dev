@@ -5,7 +5,7 @@
 #SBATCH --qos=regular
 #SBATCH --time=05:00:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=2
+#SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
 #SBATCH --cpus-per-task=32
 #SBATCH --job-name=mn_train
@@ -38,7 +38,7 @@ export MOMENT_NETWORK_DIR="/pscratch/sd/a/atsouros/STL/Moment Network"
 export DATASET_DIR="/pscratch/sd/a/atsouros/STL/moment_network_dataset/version_2"
 export OUTPUT_DIR="/pscratch/sd/a/atsouros/STL/moment_network_training/version_2"
 
-# Patch selection. Train independent Q and U networks over all generated patches.
+# Patch selection. Full shared network over all generated patches.
 export PATCH_LIST="0-191"
 export EXPECTED_PATCH_COUNT="192"
 
@@ -53,7 +53,6 @@ export LEARNING_RATE="3e-5"
 export WEIGHT_DECAY="1e-6"
 export NORMALIZE="1"
 export SAVE_EVERY="5"
-export STOKES="auto"
 
 # Optional debug limits. Use 0 for no limit.
 export MAX_TRAIN_BATCHES="0"
@@ -77,8 +76,6 @@ echo "BATCH_SIZE=${BATCH_SIZE}"
 echo "NUM_WORKERS=${NUM_WORKERS}"
 echo "N_EPOCHS_MEAN=${N_EPOCHS_MEAN}"
 echo "N_EPOCHS_FULL=${N_EPOCHS_FULL}"
-echo "STOKES=${STOKES}"
-echo "SLURM_NTASKS=${SLURM_NTASKS:-none}"
 echo "MAX_TRAIN_BATCHES=${MAX_TRAIN_BATCHES}"
 echo "MAX_VAL_BATCHES=${MAX_VAL_BATCHES}"
 echo "RESUME=${RESUME}"
@@ -87,8 +84,7 @@ test -d "${DATASET_DIR}"
 mkdir -p "${OUTPUT_DIR}"
 
 srun -N1 \
-  -n2 \
-  --ntasks-per-node=2 \
+  -n1 \
   --gpus-per-task=1 \
   --cpus-per-task=32 \
   python3 -u train_network.py

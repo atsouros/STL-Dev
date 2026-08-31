@@ -1,0 +1,144 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+
+\title{Direct Langevin Sampling with a Scattering Likelihood}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Posterior model}
+
+The observed image is decomposed as
+\begin{equation}
+    d=s+n,
+\end{equation}
+where $s$ is the unknown signal and $n=d-s$ is the CIB-like residual.  We
+sample the image-space posterior
+\begin{equation}
+    p(s\mid d)\propto \exp[-U(s)],
+    \qquad
+    U(s)=U_{\mathrm{like}}(d-s)+U_{\mathrm{prior}}(s).
+\end{equation}
+
+For a residual $n$, the STL code computes a scattering-statistic vector
+$\phi(n)$.  Each residual is standardized by its own spatial mean and
+standard deviation before computing $\phi$, matching the procedure used to
+estimate the stored covariance.  With learned mean $\mu_n$ and covariance
+$C_n$, the likelihood energy is
+\begin{equation}
+    U_{\mathrm{like}}(n)
+    =\frac{1}{2}\bigl(\phi(n)-\mu_n\bigr)^{\mathsf T}
+    C_n^{-1}\bigl(\phi(n)-\mu_n\bigr).
+\end{equation}
+Only statistics selected by the stored active-statistic mask are used.  A
+small diagonal jitter is added to $C_n$ before its Cholesky factorization for
+numerical stability.
+
+\section{Fixed power-law signal prior}
+
+The current full run uses a zero-mean stationary Gaussian prior with discrete
+power spectrum
+\begin{equation}
+    P_s(k)=A k^{\alpha}, \qquad k>0,
+\end{equation}
+where $\alpha=-3.07751$.  The earlier NIFTy slope near $-1.54$ describes the
+Fourier amplitude spectrum; the power-spectrum exponent is twice that value.
+The normalization $A$ is chosen so that a prior draw
+has expected spatial fluctuation RMS $\sigma_s=2.53272$.  These values are
+fixed; they are not sampled during the run.  In Fourier space the prior energy
+is
+\begin{equation}
+    U_{\mathrm{prior}}(s)
+    =\frac{1}{2}\sum_{k\ne0}\frac{|\widehat{s}(k)|^2}{P_s(k)}.
+\end{equation}
+The zero Fourier mode is removed because the self-standardized likelihood
+cannot identify a constant signal offset.  This fixed-spectrum prior is a
+simplification of the earlier hierarchical NIFTy correlated-field prior.
+
+\section{Langevin algorithm and Metropolis correction}
+
+PyTorch automatic differentiation evaluates $\nabla_s U(s)$.  One
+unadjusted Langevin (ULA) step is
+\begin{equation}
+    s_{j+1}=s_j-\epsilon\,\nabla_s U(s_j)
+    +\sqrt{2\epsilon}\,\xi_j,
+    \qquad \xi_j\sim\mathcal N(0,I).
+\end{equation}
+The noise and updated image are projected to zero spatial mean.  In ULA this
+proposal is always accepted, so finite $\epsilon$ introduces discretization
+bias.  The full run instead uses MALA: if $y$ is the proposal from $s$, it is
+accepted with probability
+\begin{equation}
+  \min\!\left[1,
+  \frac{e^{-U(y)}q(s\mid y)}{e^{-U(s)}q(y\mid s)}\right],
+\end{equation}
+where $q$ is the Gaussian Langevin proposal density.  Rejected proposals
+leave the state unchanged.  This correction removes the ULA stationary bias,
+although it does not by itself guarantee rapid mixing.
+
+The main sampling parameters are:
+\begin{description}
+    \item[Step size $\epsilon$ (\texttt{--step-size})]
+    Controls both the deterministic displacement and the injected noise,
+    whose per-step standard deviation is $\sqrt{2\epsilon}$.  A very small
+    value mixes slowly; a large value lowers MALA acceptance (or can make ULA
+    unstable).  The supplied run uses $\epsilon=10^{-4}$.
+
+    \item[Number of steps (\texttt{--n-steps})]
+    Total number of Langevin updates.  Increasing it helps only if the chain is
+    stable and has time to forget its initial state.
+
+    \item[Burn-in (\texttt{--burn-in})]
+    Number of initial states discarded before saving.  Energy, gradient, and
+    residual diagnostics should be approximately stationary after burn-in.
+
+    \item[Thinning (\texttt{--thin})]
+    Saves one state every specified number of post-burn-in updates.  It reduces
+    file size and correlations between stored states, but cannot repair an
+    inadequately mixed chain.
+
+    \item[Initialization (\texttt{--init})]
+    The full run first minimizes an STL likelihood plus regularized prior with
+    L-BFGS.  This is an STL-based component-separation or MAP-like phase.  Its recovered
+    signal is then used as the initial MALA state.  The initializer may use a
+    separate, broader power spectrum via
+    \texttt{--map-prior-spectral-index}; this affects initialization only, not
+    the posterior sampled by MALA.
+
+    \item[Spectral index and RMS]
+    \texttt{--prior-spectral-index} controls the relative power across spatial
+    scales; more negative values produce smoother fields.
+    \texttt{--prior-rms} fixes the overall prior fluctuation scale.
+
+    \item[Covariance jitter]
+    \texttt{--covariance-jitter-rel} controls the small diagonal regularizer
+    applied to the learned scattering covariance.  It is a numerical
+    stabilization parameter, not an additional physical noise term.
+
+    \item[Sampler (\texttt{--sampler})]
+    Selects \texttt{ula} or \texttt{mala}.  For MALA, the acceptance rate and
+    log acceptance ratio are saved.  Extremely low acceptance means the step
+    is too large; very high acceptance with little movement can mean it is too
+    small.
+\end{description}
+
+\section{Diagnostics}
+
+The run records total, likelihood, and prior energies, the gradient norm and
+RMS, and
+\begin{equation}
+    \rho^2
+    =\bigl(\phi(d-s)-\mu_n\bigr)^{\mathsf T}
+      C_n^{-1}\bigl(\phi(d-s)-\mu_n\bigr)
+    =2U_{\mathrm{like}}.
+\end{equation}
+For an ideal Gaussian statistic model with $D$ active statistics, a rough
+reference is $\rho\sim\sqrt{D}$.  Stable finite values are necessary but not
+sufficient: credible posterior samples also require stationary traces and
+adequate mixing.  For MALA, the acceptance trace should also be stable and the
+posterior summaries should be compared across independent chains.
+
+\end{document}

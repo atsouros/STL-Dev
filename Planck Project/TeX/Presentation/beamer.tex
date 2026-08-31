@@ -519,4 +519,167 @@ The running statistics are computed inside the closure so gradients flow back to
 \end{itemize}
 \end{frame}
 
+\appendix
+\section{Appendix: Moment Network U-Net}
+
+\begin{frame}[fragile]{Moment-network training pairs}
+After STL synthesis, each training pair is
+\[
+  (d^{(i)},s^{(i)}),
+  \qquad
+  d^{(i)},s^{(i)}\in\mathbb{R}^{2\times384\times384}.
+\]
+
+\vspace{0.25em}
+Here
+\[
+  d^{(i)}=(d_Q^{(i)},d_U^{(i)}),
+  \qquad
+  s^{(i)}=(s_Q^{(i)},s_U^{(i)}).
+\]
+
+\vspace{0.25em}
+The Q/U-only setting uses the same input and target fields as the legacy
+network.  The current first stage is
+\[
+  f_\theta:\mathbb{R}^{2\times384\times384}
+  \longrightarrow
+  \mathbb{R}^{4\times384\times384}.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{Data normalization}
+Before training, each channel is standardized using training-set statistics:
+\[
+  \hat d_c=\frac{d_c-m_c^{d}}{\sigma_c^{d}},
+  \qquad
+  \hat s_c=\frac{s_c-m_c^{s}}{\sigma_c^{s}},
+  \qquad c\in\{Q,U\}.
+\]
+
+\vspace{0.25em}
+The constants are empirical means and standard deviations over the training
+patch files, augmentations, and pixels:
+\[
+  m_c^{d}=\langle d_c\rangle_{\mathrm{train}},
+  \quad
+  (\sigma_c^{d})^2=\langle(d_c-m_c^{d})^2\rangle_{\mathrm{train}}.
+\]
+
+\vspace{0.25em}
+The network is trained in normalized units.  At inference,
+\[
+  \mu_c = \hat\mu_c\,\sigma_c^{s}+m_c^{s},
+  \qquad
+  \mathrm{std}_c=\widehat{\mathrm{std}}_c\,\sigma_c^{s}.
+\]
+\end{frame}
+
+\begin{frame}[fragile]{U-Net block}
+Each convolutional block is
+\[
+  \operatorname{Block}_{a\to b}(z)
+  =
+  \operatorname{ReLU}
+  \left[
+    \operatorname{GN}
+    \left(
+      W_{a\to b}*z+\beta
+    \right)
+  \right],
+\]
+where $*$ is a $3\times3$ convolution and GN is group normalization.
+
+\vspace{0.25em}
+The encoder applies repeated pooling and convolution:
+\[
+\begin{aligned}
+  b_1&=\operatorname{Block}_{C_{\rm in}\to16}(\hat d),\\
+  b_2&=\operatorname{Block}_{16\to32}(\operatorname{Pool}(b_1)),\\
+  b_3&=\operatorname{Block}_{32\to64}(\operatorname{Pool}(b_2)),\\
+  b_4&=\operatorname{Block}_{64\to64}(\operatorname{Pool}(b_3)),\\
+  b_5&=\operatorname{Block}_{64\to64}(\operatorname{Pool}(b_4)).
+\end{aligned}
+\]
+\end{frame}
+
+\begin{frame}[fragile]{U-Net skip connections}
+The decoder upsamples and concatenates encoder features:
+\[
+\begin{aligned}
+  b_6&=\operatorname{Block}_{128\to64}
+       \left([b_4,\operatorname{Up}(b_5)]\right),\\
+  b_7&=\operatorname{Block}_{128\to64}
+       \left([b_3,\operatorname{Up}(b_6)]\right),\\
+  b_8&=\operatorname{Block}_{96\to32}
+       \left([b_2,\operatorname{Up}(b_7)]\right),\\
+  b_9&=\operatorname{Block}_{48\to16}
+       \left([b_1,\operatorname{Up}(b_8)]\right).
+\end{aligned}
+\]
+
+\vspace{0.25em}
+The final layer is a $1\times1$ convolution:
+\[
+  f_\theta(\hat d)=W_{\rm out}*b_9+\beta_{\rm out}.
+\]
+All maps keep the original $384\times384$ resolution at the output.
+\end{frame}
+
+\begin{frame}[fragile]{Mean stage}
+For the Q/U-only run,
+\[
+  f_\theta(\hat d)
+  =
+  (\hat\mu_Q,\hat\mu_U,a_Q,a_U).
+\]
+
+\vspace{0.25em}
+Only the first two channels enter the first-stage loss:
+\[
+  \hat\mu_\theta(\hat d)=f_\theta(\hat d)_{0:2},
+  \qquad
+  \mathcal L_{\rm mean}(\theta)
+  =
+  \frac{1}{N}\sum_{i=1}^{N}
+  \left\|
+    \hat\mu_\theta(\hat d^{(i)})-\hat s^{(i)}
+  \right\|_2^2 .
+\]
+
+\vspace{0.25em}
+This is the legacy mean architecture: two input channels, four output
+channels, and the first two output channels define the posterior mean.
+\end{frame}
+
+\begin{frame}[fragile]{Variance stage}
+After the mean stage, $\theta$ is frozen.  A second U-Net $g_\psi$ is trained
+to predict the marginal log-variance maps:
+\[
+  g_\psi(\hat d)=(\widehat{\log v_Q},\widehat{\log v_U}).
+\]
+
+\vspace{0.25em}
+The training target is the pixelwise squared residual from the frozen mean:
+\[
+  \log r_c^2
+  =
+  \log\left[
+    \left(\hat s_c-\hat\mu_{\theta,c}(\hat d)\right)^2+\epsilon
+  \right],
+  \qquad c\in\{Q,U\}.
+\]
+
+\vspace{0.25em}
+The second-stage loss is
+\[
+  \mathcal L_{\rm var}(\psi)
+  =
+  \frac{1}{N}\sum_{i,c,p}
+  \left(
+    g_{\psi,c}(\hat d^{(i)})_p-\log r_{i,c,p}^2
+  \right)^2.
+\]
+\end{frame}
+
 \end{document}

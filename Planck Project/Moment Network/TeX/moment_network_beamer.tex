@@ -265,53 +265,230 @@
   The \(U\)-minus-\(Q\) std diagnostic exposed that the two std maps were close but not identical.
 \end{frame}
 
-\begin{frame}{Reference Design}
-  We can also do
+\begin{frame}{New Algorithm: Inputs and Outputs}
+  The current implementation uses intensity as an auxiliary input:
   \[
-    Q^d
-    \longmapsto
-    (\mu_Q, \log\sigma_Q^2),
+    \data =
+    \begin{pmatrix}
+      d_Q \\
+      d_U \\
+      d_I
+    \end{pmatrix},
+    \qquad
+    \signal =
+    \begin{pmatrix}
+      s_Q \\
+      s_U
+    \end{pmatrix}.
   \]
 
-  \[
-    U^d
-    \longmapsto
-    (\mu_U, \log\sigma_U^2).
-  \]
+  \vspace{0.5em}
+  Here \(d_I\) is the downgraded \(I857\) map for the same patch.
 
-  \vspace{0.6em}
-  This avoids coupling the Q and U variance heads through a shared trunk.
+  \vspace{0.5em}
+  The network outputs posterior marginal moments:
+  \[
+    \data
+    \longmapsto
+    \left(
+      \mu_Q,\ \mu_U,\ \sigma_Q,\ \sigma_U
+    \right),
+  \]
+  where \(\sigma_Q\) and \(\sigma_U\) are per-pixel marginal posterior standard deviations.
 \end{frame}
 
-\begin{frame}{Current Corrected Implementation}
-  The corrected implementation trains two independent U-Nets:
+\begin{frame}{New Algorithm: Two Stages}
+  We now train two U-Nets jointly over Q and U:
 
   \begin{center}
   \begin{tabular}{lll}
     \toprule
-    Network & Input & Output \\
+    Stage & Input & Output \\
     \midrule
-    Q network & \(Q^d\) & \((\mu_Q, \log\sigma_Q^2)\) \\
-    U network & \(U^d\) & \((\mu_U, \log\sigma_U^2)\) \\
+    Mean network & \((d_Q,d_U,d_I)\) & \((\mu_Q,\mu_U)\) \\
+    Variance network & \((d_Q,d_U,d_I)\) & \((\log\sigma_Q^2,\log\sigma_U^2)\) \\
     \bottomrule
   \end{tabular}
   \end{center}
 
+  \vspace{0.7em}
+  Stage 1 learns the conditional mean. Stage 2 freezes the mean network and learns the residual variance.
 \end{frame}
 
-\begin{frame}{Inference}
+\begin{frame}{New Algorithm: Mean Stage}
+  For training pairs \(\{(\data_i,\synth_i)\}_{i=1}^N\), the mean network is
+  \[
+    m_\theta(\data_i)
+    =
+    \begin{pmatrix}
+      \mu_Q(\data_i) \\
+      \mu_U(\data_i)
+    \end{pmatrix}.
+  \]
+
+  \vspace{0.5em}
+  It is trained with
+  \[
+    \mathcal{L}_{\rm mean}
+    =
+    \frac{1}{N|\Omega|}
+    \sum_{i=1}^{N}
+    \sum_{r\in\Omega}
+    \left\|
+      \synth_{i,r} - m_\theta(\data_i)_r
+    \right\|_2^2 .
+  \]
+
+  \vspace{0.5em}
+  This estimates the posterior mean
+  \[
+    m_\theta(\data)
+    \approx
+    \mathbb{E}[\signal\mid\data].
+  \]
+\end{frame}
+
+\begin{frame}{New Algorithm: Variance Stage}
+  After training \(m_\theta\), we freeze it and form residual targets:
+  \[
+    \rho_i(r)
+    =
+    \log
+    \left[
+      \left(
+        \synth_i(r) - m_\theta(\data_i)(r)
+      \right)^2
+      + \epsilon
+    \right].
+  \]
+
+  \vspace{0.5em}
+  The variance network \(v_\phi\) predicts
+  \[
+    v_\phi(\data)
+    =
+    \begin{pmatrix}
+      \log\sigma_Q^2(\data) \\
+      \log\sigma_U^2(\data)
+    \end{pmatrix}.
+  \]
+
+  \vspace{0.5em}
+  It minimizes
+  \[
+    \mathcal{L}_{\rm var}
+    =
+    \frac{1}{N|\Omega|}
+    \sum_{i=1}^{N}
+    \sum_{r\in\Omega}
+    \left\|
+      v_\phi(\data_i)_r - \rho_i(r)
+    \right\|_2^2 .
+  \]
+\end{frame}
+
+\begin{frame}{Current Implementation: Architecture}
+  Both stages use the same small U-Net architecture:
+
+  \vspace{0.4em}
+  \begin{center}
+  \begin{tabular}{lll}
+    \toprule
+    Network & Input channels & Output channels \\
+    \midrule
+    Mean U-Net & \(d_Q,d_U,d_I\) & \(\mu_Q,\mu_U\) \\
+    Variance U-Net & \(d_Q,d_U,d_I\) & \(\log\sigma_Q^2,\log\sigma_U^2\) \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \vspace{0.5em}
+  High-level structure:
+  \[
+    3 \rightarrow 16 \rightarrow 32 \rightarrow 64 \rightarrow 64
+    \rightarrow 64 \rightarrow 32 \rightarrow 16 \rightarrow 2 .
+  \]
+
+  \vspace{0.4em}
+  Downsampling uses average pooling; upsampling uses nearest-neighbor interpolation.
+  Skip connections concatenate encoder and decoder features at matching resolution.
+\end{frame}
+
+\begin{frame}{Current Implementation: Normalization}
+  Inputs and targets are normalized channel by channel before training:
+  \[
+    \widehat{\data}_{c}
+    =
+    \frac{\data_c-\bar{\data}_c}{\sigma_{\data,c}},
+    \qquad
+    \widehat{\signal}_{c}
+    =
+    \frac{\signal_c-\bar{\signal}_c}{\sigma_{\signal,c}} .
+  \]
+
+  \vspace{0.5em}
+  The input channels are
+  \[
+    \data=(d_Q,d_U,d_I),
+  \]
+  and the target channels are
+  \[
+    \signal=(s_Q,s_U).
+  \]
+
+  \vspace{0.5em}
+  The means and standard deviations are computed over the training split:
+  \[
+    \{(\data_i,\synth_i)\}_{i\in \mathcal{T}},
+  \]
+  using all pixels and all augmented samples. They are saved with the model checkpoint and reused at inference.
+\end{frame}
+
+\begin{frame}{Current Implementation: Why Normalize?}
+  The Q, U, and \(I857\) channels have different numerical scales.
+
+  \vspace{0.5em}
+  Normalization makes the optimization problem better conditioned:
+  \[
+    (d_Q,d_U,d_I)
+    \longrightarrow
+    (\widehat{d}_Q,\widehat{d}_U,\widehat{d}_I).
+  \]
+
+  \vspace{0.5em}
+  The network predicts moments in normalized target units:
+  \[
+    \widehat{\mu}_Q,\widehat{\mu}_U,
+    \qquad
+    \log \widehat{\sigma}_Q^2,\log \widehat{\sigma}_U^2.
+  \]
+
+  \vspace{0.5em}
+  At inference, we transform back:
+  \[
+    \mu_c
+    =
+    \sigma_{\signal,c}\widehat{\mu}_c+\bar{\signal}_c,
+    \qquad
+    \sigma_c
+    =
+    \sigma_{\signal,c}\widehat{\sigma}_c.
+  \]
+\end{frame}
+
+\begin{frame}{New Algorithm: Inference}
   For a selected patch:
 
   \begin{enumerate}
-    \item Load raw signal maps:
+    \item Load observed maps:
       \[
-        Q_{768}, U_{768} \in \mathbb{R}^{768 \times 768}.
+        Q_{768}, U_{768}, I857_{768}.
       \]
     \item Downgrade by \(2\times2\) block averaging:
       \[
-        Q_{384}, U_{384} \in \mathbb{R}^{384 \times 384}.
+        d_Q,d_U,d_I \in \mathbb{R}^{384 \times 384}.
       \]
-    \item Run Q and U networks independently.
+    \item Run the mean network and variance network.
   \end{enumerate}
 
   \vspace{0.4em}
@@ -336,7 +513,7 @@
 
   \vspace{0.4em}
   \small
-  These plots are visual baselines for the corrected two-network run.
+  These plots are visual baselines for the new Q/U/I two-stage run.
 \end{frame}
 
 \begin{frame}{Previous Version: More Examples}
@@ -345,15 +522,15 @@
 
   \vspace{0.4em}
   \small
-  After retraining, the same plotting script can compare independent Q/U uncertainty maps.
+  After retraining, the same plotting script can compare the new two-stage uncertainty maps.
 \end{frame}
 
 \begin{frame}{Current Status}
   \begin{itemize}
     \item Dataset generation is complete for all patches.
     \item Previous joint-network results exposed a Q/U uncertainty coupling issue.
-    \item Training has been corrected to two independent Q/U networks.
-    \item Q and U training now runs in parallel on two GPUs.
+    \item The current training uses \(D=(d_Q,d_U,d_I)\), with \(I857\) as auxiliary data.
+    \item The mean and variance are trained in two stages.
   \end{itemize}
 
   \vspace{0.7em}

@@ -1,0 +1,207 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+
+\title{Run Parameters for the NIFTy8 Healpix Denoising Runs}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Inference Problem}
+
+The synthetic and real-data scripts use the same inference problem.  For a
+Healpix map with $N_{\rm pix}=12N_{\rm side}^2$ pixels,
+\begin{equation}
+    d = s + n,
+    \qquad
+    n_p \sim \mathcal{N}(0,\sigma_n^2),
+\end{equation}
+with independent white noise in pixel space.  The posterior is
+\begin{equation}
+    p(s,\theta \mid d)
+    \propto
+    \exp\left[
+        -\frac{1}{2\sigma_n^2}
+        \sum_{p=1}^{N_{\rm pix}} (d_p - s_p)^2
+    \right]
+    p(s\mid\theta)p(\theta),
+\end{equation}
+where $\theta$ denotes the latent prior/hyperprior variables used by NIFTy.
+
+NIFTy samples this posterior approximately with variational inference.  The
+run parameters below control the numerical approximation, not the mathematical
+prior model.
+
+\section{Resolution and Data Controls}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+Parameter & Mathematical role & Practical effect \\
+\midrule
+\texttt{NSIDE}
+& Sets $N_{\rm pix}=12N_{\rm side}^2$
+& Resolution of the input map. \\
+\texttt{ANALYSIS\_NSIDE}
+& Sets the $N_{\rm side}$ actually inferred on
+& Optional downsampled run for testing. \\
+\texttt{COMPONENT}
+& Selects one scalar field $d$
+& Which I/Q/U FITS component is read. \\
+\texttt{NOISE\_SIGMA}
+& Sets $\sigma_n$ in the likelihood
+& Controls the weight of data residuals. \\
+\texttt{SYNTH\_SNR}
+& Sets $\sigma_n = {\rm std}(s)/{\rm SNR}$
+& Synthetic runs only; changes generated noise and likelihood together. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{Important.}
+If \texttt{ANALYSIS\_NSIDE} differs from \texttt{NSIDE}, the map is degraded
+before inference.  The original pixel-white noise is then no longer exactly
+white and independent at the degraded resolution.  Such runs are useful as
+sanity checks, but the full statistical model is cleanest when
+\texttt{ANALYSIS\_NSIDE = NSIDE}.
+
+\section{Sampling and Variational Inference Controls}
+
+NIFTy minimizes a variational approximation to the posterior.  Let $m_i$ denote
+the current latent mean at outer VI iteration $i$.  At a high level, each
+outer iteration performs
+\begin{align}
+    \{\xi_{i,k}\}_{k=1}^{K}
+    &\sim q_i(\xi\mid m_i),
+    \\
+    m_{i+1}
+    &\approx
+    \arg\min_m
+    \widehat{\mathrm{KL}}_i(m),
+\end{align}
+where $K=\texttt{POSTERIOR\_SAMPLES}$ and
+$\widehat{\mathrm{KL}}_i$ is a sample-based approximation to the KL objective.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+Parameter & Mathematical role & Practical effect \\
+\midrule
+\texttt{POSTERIOR\_SAMPLES}
+& Number $K$ of samples used per VI iteration
+& More samples reduce Monte Carlo noise but cost more. \\
+\texttt{SAVE\_SAMPLES}
+& Number of final signal samples written
+& Controls output size, not the inference objective. \\
+\texttt{VI\_ITERATIONS}
+& Number of outer VI refinements
+& More rounds improve the posterior approximation but multiply cost. \\
+\texttt{GEOVI}
+& Chooses geoVI if true, MGVI-like mode if false
+& geoVI can be more accurate but more expensive. \\
+\texttt{GEOVI\_ITERATIONS}
+& Nonlinear solve cap inside geoVI sampling
+& Used only when \texttt{GEOVI=True}. \\
+\texttt{GEOVI\_TOL}
+& Nonlinear geoVI stopping tolerance
+& Used only when \texttt{GEOVI=True}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{\texttt{VI\_ITERATIONS}.}
+This is the number of outer posterior-refinement cycles.  It is not the number
+of saved samples.  For example,
+\[
+    \texttt{POSTERIOR\_SAMPLES}=10,
+    \qquad
+    \texttt{VI\_ITERATIONS}=3
+\]
+means that NIFTy uses 10 approximate samples in each of 3 outer VI updates.
+The final saved maps are drawn from the final approximation.
+
+\section{Optimization Controls}
+
+Inside each VI iteration, NIFTy solves optimization and metric-inversion
+subproblems.  These are controlled by iteration caps and tolerances.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+Parameter & Mathematical role & Practical effect \\
+\midrule
+\texttt{MAP\_ITERATIONS}
+& Iteration cap for minimizing $\widehat{\mathrm{KL}}$
+& Larger values allow better mean/hyperparameter updates. \\
+\texttt{MAP\_TOL}
+& Gradient-norm stopping threshold
+& Smaller values demand tighter optimization. \\
+\texttt{SAMPLE\_CG\_ITERATIONS}
+& Iteration cap for metric inverse solves
+& Larger values improve posterior sample accuracy. \\
+\texttt{SAMPLE\_CG\_TOL}
+& CG stopping threshold
+& Smaller values demand more accurate samples. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+When NIFTy prints
+\begin{quote}
+\texttt{Iteration limit reached. Assuming convergence}
+\end{quote}
+one of these inner iteration caps has been reached.  The run may still produce
+usable outputs, but the diagnostics should then be interpreted as approximate.
+Increasing \texttt{MAP\_ITERATIONS} or \texttt{SAMPLE\_CG\_ITERATIONS} usually
+improves convergence at increased runtime.
+
+\section{Randomness and Output Controls}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+Parameter & Mathematical role & Practical effect \\
+\midrule
+\texttt{SEED}
+& Initializes pseudo-random draws
+& Controls reproducibility. \\
+\texttt{OUTDIR}
+& None
+& Directory for FITS samples, metadata, and progress logs. \\
+\texttt{DRY\_RUN}
+& None
+& Builds/checks setup and exits before inference. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Cost Scaling}
+
+The number of pixels scales as
+\begin{equation}
+    N_{\rm pix} = 12N_{\rm side}^2.
+\end{equation}
+Going from $N_{\rm side}=512$ to $1024$ multiplies the pixel count by 4.
+Because each VI step requires repeated spherical harmonic transforms and
+linear solves, the wall time can increase by more than this factor.
+
+A conservative production sequence is:
+\begin{align*}
+    &N_{\rm side}=128 \quad \text{synthetic test},\\
+    &N_{\rm side}=256 \quad \text{real-data sanity test},\\
+    &N_{\rm side}=512 \quad \text{intermediate real-data test},\\
+    &N_{\rm side}=1024 \quad \text{full run}.
+\end{align*}
+
+\end{document}
